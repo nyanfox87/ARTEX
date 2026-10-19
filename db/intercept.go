@@ -38,7 +38,7 @@ type InterceptPending struct {
 	ToolInput      json.RawMessage `json:"tool_input"`
 	Status         string          `json:"status"`
 	DecisionSource string          `json:"decision_source"`
-	Reason         string          `json:"reason"` // 规则 message 或模型判定理由(前缀 [模型])
+	Reason         string          `json:"reason"` // 規則 message 或模型判定理由(字首 [模型])
 	DecidedAt      *time.Time      `json:"decided_at"`
 	CreatedAt      time.Time       `json:"created_at"`
 }
@@ -228,7 +228,7 @@ func scanInterceptApprovalRow(rows interface{ Scan(...any) error }, r *Intercept
 
 // Keep legacy rows without decision_source consistent with their displayed source.
 const approvalDecisionSource = `CASE
- WHEN ip.audit->>'decision_reason' LIKE '人工允许%' OR ip.audit->>'decision_reason' LIKE '人工拒绝%' THEN 'manual'
+ WHEN ip.audit->>'decision_reason' LIKE '人工允許%' OR ip.audit->>'decision_reason' LIKE '人工拒絕%' THEN 'manual'
  ELSE COALESCE(NULLIF(ip.decision_source,''), CASE
    WHEN ip.rule_id IS NOT NULL THEN 'rule'
    WHEN ip.reason LIKE '[模型]%' THEN 'model' ELSE 'unknown' END)
@@ -362,7 +362,7 @@ func (d *DB) listInterceptsPage(taskID string, page, size int, filter InterceptA
 	if strings.HasPrefix(search, "#") {
 		id, err := strconv.ParseInt(strings.TrimPrefix(search, "#"), 10, 64)
 		if err != nil || id <= 0 {
-			return nil, 0, fmt.Errorf("审批编号必须为 # 后接正整数")
+			return nil, 0, fmt.Errorf("審批編號必須為 # 後接正整數")
 		}
 		add("ip.id", strconv.FormatInt(id, 10))
 	} else if search != "" {

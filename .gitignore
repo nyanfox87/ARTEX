@@ -34,9 +34,9 @@ Thumbs.db
 # claude code local state
 .claude/
 
-# 内嵌前端的单二进制产物
+# 內嵌前端的單二進位制產物
 /artex
-# 一键更新在可执行文件旁留下的中间产物（暂存件 / 备份 / 失败版本 / 升级标记）
+# 一鍵更新在執行檔旁留下的中間產物（暫存件 / 備份 / 失敗版本 / 升級標記）
 /artex.new
 /artex.new.sha256
 /artex.old
@@ -45,16 +45,16 @@ Thumbs.db
 /server/webui/dist/
 /dist/
 
-# JWT 签名密钥（运行时生成，存项目根，绝不提交）
+# JWT 簽名金鑰（執行時生成，存專案根，絕不提交）
 /jwt.key
 
-# Docker 部署生成的本地环境（含密码/密钥，不提交）
+# Docker 部署生成的本地環境（含密碼/金鑰，不提交）
 .env
 
-# 调度器运行/模拟产生的事件日志（测试产物，不提交）
+# 排程器執行/模擬產生的事件日誌（測試產物，不提交）
 *-events.csv
 
-# bench 基准测试相关（本地产物，不提交）
+# bench 基準測試相關（本地產物，不提交）
 /bench/
 /Dockerfile.bench
 /Dockerfile.bench.v2

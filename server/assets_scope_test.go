@@ -17,7 +17,7 @@ func TestCompanyScopeInputsAcceptStructuredAndLegacyRules(t *testing.T) {
 	var inputs companyScopeInputs
 	if err := json.Unmarshal([]byte(`[
 		"example.com",
-		{"kind":"icp","value":"京 ICP备 123号"},
+		{"kind":"icp","value":"京 ICP備 123號"},
 		{"kind":"keyword","value":"Acme Security"}
 	]`), &inputs); err != nil {
 		t.Fatal(err)

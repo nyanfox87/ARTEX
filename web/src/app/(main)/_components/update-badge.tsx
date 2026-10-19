@@ -9,14 +9,14 @@ import { ArrowUpCircleIcon } from "lucide-react";
 import { api } from "@/lib/api";
 
 /**
- * 顶栏的"有新版本"提示：整页加载时查一次，有更新就在版本号旁边亮出来，
- * 点击直达系统配置页的「版本与更新」卡片。
+ * 頂欄的"有新版本"提示：整頁載入時查一次，有更新就在版本號旁邊亮出來，
+ * 點選直達系統配置頁的「版本與更新」卡片。
  *
- * 后端对 GitHub 的查询结果有 30 分钟缓存，所以这里每次挂载都查一次是安全的
- * ——未认证的 GitHub API 只有 60 次/小时/IP，没有那层缓存的话，多开几个标签页
- * 就会把配额耗光，之后真想更新反而查不动。
+ * 後端對 GitHub 的查詢結果有 30 分鐘快取，所以這裡每次掛載都查一次是安全的
+ * ——未認證的 GitHub API 只有 60 次/小時/IP，沒有那層快取的話，多開幾個標籤頁
+ * 就會把配額耗光，之後真想更新反而查不動。
  *
- * 查询失败一律静默：顶栏不是报错的地方，用户进设置页点「检查更新」会看到原因。
+ * 查詢失敗一律靜默：頂欄不是報錯的地方，使用者進設定頁點「檢查更新」會看到原因。
  */
 export function UpdateBadge() {
   const [latest, setLatest] = React.useState("");
@@ -26,11 +26,11 @@ export function UpdateBadge() {
     api
       .checkUpdate()
       .then((r) => {
-        // has_update 已经包含了"版本号可比较"的判断，开发构建不会亮这个提示。
+        // has_update 已經包含了"版本號可比較"的判斷，開發構建不會亮這個提示。
         if (alive && r.has_update && r.latest) setLatest(r.latest.replace(/^v(?=\d)/, ""));
       })
       .catch(() => {
-        // 静默：没网 / GitHub 限流都不该在顶栏弹错误。
+        // 靜默：沒網 / GitHub 限流都不該在頂欄彈錯誤。
       });
     return () => {
       alive = false;
@@ -42,10 +42,10 @@ export function UpdateBadge() {
   return (
     <Link
       href="/system/settings"
-      title={`发现新版本 ${latest}，点击前往更新`}
+      title={`發現新版本 ${latest}，點選前往更新`}
       className="inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 font-medium text-primary-foreground text-xs transition-opacity hover:opacity-90"
     >
-      {/* 呼吸点：顶栏元素很多，纯文字容易被忽略，动效让它一眼可见。 */}
+      {/* 呼吸點：頂欄元素很多，純文字容易被忽略，動效讓它一眼可見。 */}
       <span className="relative flex size-1.5">
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-foreground opacity-75" />
         <span className="relative inline-flex size-1.5 rounded-full bg-primary-foreground" />

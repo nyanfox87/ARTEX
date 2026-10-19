@@ -6,10 +6,10 @@ import (
 	"strconv"
 )
 
-var ErrInterceptTaskDeleted = errors.New("任务已被删除或归档")
-var ErrInterceptSessionDeleted = errors.New("对应会话或执行记录已被删除或不存在")
+var ErrInterceptTaskDeleted = errors.New("任務已被刪除或歸檔")
+var ErrInterceptSessionDeleted = errors.New("對應會話或執行記錄已被刪除或不存在")
 
-var ErrInterceptExecutionUnavailable = errors.New("未找到可唯一关联的原始工具调用；记录可能已删除，或旧审批没有保存关联 ID")
+var ErrInterceptExecutionUnavailable = errors.New("未找到可唯一關聯的原始工具呼叫；記錄可能已刪除，或舊審批沒有儲存關聯 ID")
 
 // InterceptExecution is a navigation target read from original activity rows.
 // It is not model context and never falls back to matching command text.

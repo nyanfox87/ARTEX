@@ -59,15 +59,15 @@ func scriptReferences(command, dir string, depth int) []scriptReference {
 
 func scriptReferencesBounded(command, dir string, depth int, remaining *int) []scriptReference {
 	if *remaining <= 0 || len(command) > maxReviewScriptBytes {
-		return []scriptReference{{problem: "Shell 内联执行内容超过静态解析总量限制"}}
+		return []scriptReference{{problem: "Shell 內聯執行內容超過靜態解析總量限制"}}
 	}
 	*remaining--
 	if depth > 4 {
-		return []scriptReference{{problem: "嵌套 Shell 命令超过静态解析范围"}}
+		return []scriptReference{{problem: "巢狀 Shell 命令超過靜態解析範圍"}}
 	}
 	tree, err := syntax.NewParser().Parse(strings.NewReader(command), "review")
 	if err != nil {
-		return []scriptReference{{problem: "无法静态解析当前 Shell 命令：" + err.Error()}}
+		return []scriptReference{{problem: "無法靜態解析當前 Shell 命令：" + err.Error()}}
 	}
 	var refs []scriptReference
 	sourceInputs := map[*syntax.CallExpr]reviewSourceInput{}
@@ -128,7 +128,7 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 			}
 		}
 		if !ok || path == "" {
-			refs = append(refs, scriptReference{problem: "执行脚本路径包含动态展开，无法确定实际文件"})
+			refs = append(refs, scriptReference{problem: "執行指令碼路徑包含動態展開，無法確定實際檔案"})
 			return
 		}
 		if !filepath.IsAbs(path) {
@@ -139,14 +139,14 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 					return
 				}
 
-				refs = append(refs, scriptReference{path: path, problem: "执行目录不确定，无法解析相对脚本路径"})
+				refs = append(refs, scriptReference{path: path, problem: "執行目錄不確定，無法解析相對指令碼路徑"})
 				return
 			}
 			path = filepath.Join(dir, path)
 		}
 		absolute, err := filepath.Abs(path)
 		if err != nil {
-			refs = append(refs, scriptReference{path: path, problem: "无法解析绝对路径"})
+			refs = append(refs, scriptReference{path: path, problem: "無法解析絕對路徑"})
 			return
 		}
 		if ref, ok := generated[absolute]; ok {
@@ -195,13 +195,13 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 		args, resolved := constantCallArgs(args, constants)
 		name, ok := staticCommandName(args[0])
 		if !resolved || !ok {
-			refs = append(refs, scriptReference{problem: "动态命令入口，无法确定是否执行脚本"})
+			refs = append(refs, scriptReference{problem: "動態命令入口，無法確定是否執行指令碼"})
 			return true
 		}
 		wrappedArgs := args
 		args, name, ok = unwrapScriptCall(args)
 		if !ok {
-			refs = append(refs, scriptReference{problem: "包装命令的执行入口不确定"})
+			refs = append(refs, scriptReference{problem: "包裝命令的執行入口不確定"})
 			return true
 		}
 		trackWrites(stmt, args)
@@ -250,7 +250,7 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 					sourceInputs[call] = reviewSourceInput{ref: ref}
 				}
 			} else {
-				refs = append(refs, scriptReference{problem: "source 缺少脚本路径"})
+				refs = append(refs, scriptReference{problem: "source 缺少指令碼路徑"})
 			}
 			return true
 		}
@@ -271,10 +271,10 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 								refs = append(refs, scriptReferencesBounded(inline, dir, depth+1, remaining)...)
 							}
 						} else {
-							refs = append(refs, scriptReference{problem: "Shell 内联执行内容不确定"})
+							refs = append(refs, scriptReference{problem: "Shell 內聯執行內容不確定"})
 						}
 					} else if shell {
-						refs = append(refs, scriptReference{problem: "Shell 内联执行缺少命令内容"})
+						refs = append(refs, scriptReference{problem: "Shell 內聯執行缺少命令內容"})
 					}
 					return true
 				}
@@ -283,11 +283,11 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 				}
 				if value == "-m" && strings.HasPrefix(base, "python") {
 					if pythonModuleShellEnvironmentUnknown(tree, call, name, sourceInputs, constants, &envAnalysisRemaining) {
-						refs = append(refs, scriptReference{problem: "前序 Shell 操作可能改变 Python 模块环境，无法确认源码入口"})
+						refs = append(refs, scriptReference{problem: "前序 Shell 操作可能改變 Python 模組環境，無法確認原始碼入口"})
 						return true
 					}
 					if i+1 >= len(args) {
-						refs = append(refs, scriptReference{problem: "Python 模块执行缺少模块名称"})
+						refs = append(refs, scriptReference{problem: "Python 模組執行缺少模組名稱"})
 						return true
 					}
 					module, known := staticWord(args[i+1])
@@ -297,7 +297,7 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 						}
 					}
 					if !known {
-						refs = append(refs, scriptReference{problem: "Python 模块名称包含动态展开"})
+						refs = append(refs, scriptReference{problem: "Python 模組名稱包含動態展開"})
 						return true
 					}
 					refs = append(refs, pythonModuleReferences(name, module, dir, args, wrappedArgs[:len(wrappedArgs)-len(args)], call, generated, constants)...)
@@ -319,7 +319,7 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 						i++
 						continue
 					}
-					refs = append(refs, scriptReference{problem: "Shell 初始化选项缺少脚本路径"})
+					refs = append(refs, scriptReference{problem: "Shell 初始化選項缺少指令碼路徑"})
 					return true
 				}
 				if strings.HasPrefix(value, "-") {
@@ -341,7 +341,7 @@ func scriptReferencesBounded(command, dir string, depth int, remaining *int) []s
 				}
 			}
 			if len(args) > 1 || len(tree.Stmts) > 1 || strings.Contains(command, "|") {
-				refs = append(refs, scriptReference{problem: "解释器从外部标准输入执行代码，无法取得文件快照"})
+				refs = append(refs, scriptReference{problem: "直譯器從外部標準輸入執行程式碼，無法取得檔案快照"})
 			}
 			return true
 		}
@@ -408,16 +408,16 @@ func captureScripts(workingDir, tool string, arguments json.RawMessage) ([]Revie
 			file.Source = "file"
 		}
 		if file.Path == "" {
-			file.Path = "<无法确定的脚本>"
+			file.Path = "<無法確定的指令碼>"
 		}
 		if ref.problem != "" {
-			file.Truncated = strings.Contains(ref.problem, "超过")
+			file.Truncated = strings.Contains(ref.problem, "超過")
 			status = "incomplete"
 			files = append(files, file)
 			continue
 		}
 		if len(files) >= 8 {
-			files = append(files, ReviewScript{Path: file.Path, ReadError: "本次调用超过 8 个脚本文件"})
+			files = append(files, ReviewScript{Path: file.Path, ReadError: "本次呼叫超過 8 個指令碼檔案"})
 			status = "incomplete"
 			break
 		}
@@ -428,7 +428,7 @@ func captureScripts(workingDir, tool string, arguments json.RawMessage) ([]Revie
 		}
 		if err != nil {
 			file.ReadError = err.Error()
-			if strings.Contains(file.ReadError, "超过") {
+			if strings.Contains(file.ReadError, "超過") {
 				file.Truncated = true
 			}
 			status = "incomplete"
@@ -442,19 +442,19 @@ func captureScripts(workingDir, tool string, arguments json.RawMessage) ([]Revie
 			continue
 		}
 		if tool == "shell_send" {
-			file.ReadError = "交互会话可能已切换目录或连接远端，无法确认本机文件就是实际执行脚本"
+			file.ReadError = "互動會話可能已切換目錄或連線遠端，無法確認本機檔案就是實際執行指令碼"
 			status = "incomplete"
 			files = append(files, file)
 			continue
 		}
 		if !utf8.Valid(content) || bytes.ContainsRune(content, 0) {
-			file.ReadError = "脚本不是有效 UTF-8 文本"
+			file.ReadError = "指令碼不是有效 UTF-8 文本"
 			status = "incomplete"
 			files = append(files, file)
 			continue
 		}
 		if len(content) > maxReviewScriptBytes || total+len(content) > maxReviewScriptBytes {
-			file.ReadError = "脚本超过完整快照总量限制（1 MiB），未附加部分内容"
+			file.ReadError = "指令碼超過完整快照總量限制（1 MiB），未附加部分內容"
 			file.Truncated = true
 			status = "incomplete"
 			files = append(files, file)
@@ -478,10 +478,10 @@ func readScript(path string) ([]byte, error) {
 		return nil, err
 	}
 	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("不是普通文件")
+		return nil, fmt.Errorf("不是普通檔案")
 	}
 	if info.Size() > maxReviewScriptBytes {
-		return nil, fmt.Errorf("脚本超过完整快照限制（1 MiB）")
+		return nil, fmt.Errorf("指令碼超過完整快照限制（1 MiB）")
 	}
 	f, err := os.Open(path)
 	if err != nil {

@@ -46,7 +46,7 @@ func (s SideQuestionService) Answer(ctx context.Context, req llm.CompletionReque
 			}
 		}
 		if err == nil && !complete {
-			err = errors.New("模型响应中断，请重新提问")
+			err = errors.New("模型回應中斷，請重新提問")
 		}
 	} else {
 		var msg llm.Message
@@ -58,9 +58,9 @@ func (s SideQuestionService) Answer(ctx context.Context, req llm.CompletionReque
 	}
 	if err == nil && strings.TrimSpace(out.Text) == "" {
 		if out.ToolUse {
-			out.Text = "当前旁路提问不能执行工具操作，请在主会话中发出操作请求。"
+			out.Text = "當前旁路提問不能執行工具操作，請在主會話中發出操作請求。"
 		} else {
-			err = errors.New("模型没有返回回答")
+			err = errors.New("模型沒有返回回答")
 		}
 	}
 	return out, err

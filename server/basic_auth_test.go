@@ -225,7 +225,7 @@ func TestBasicAuthGate(t *testing.T) {
 	if w.Code != 204 {
 		t.Fatal("must default to disabled")
 	}
-	w = saveBasicAuthForTest(s, `{"enabled":true,"username":"entry","password":"密码:test-pass"}`)
+	w = saveBasicAuthForTest(s, `{"enabled":true,"username":"entry","password":"密碼:test-pass"}`)
 	if w.Code != 200 {
 		t.Fatalf("enable: %s", w.Body.String())
 	}
@@ -250,8 +250,8 @@ func TestBasicAuthGate(t *testing.T) {
 		{name: "health exempt", path: "/api/health", want: 204},
 		{name: "health prefix not exempt", path: "/api/health/anything", want: 401},
 		{name: "wrong password", path: "/login", user: "entry", pass: "wrong", want: 401},
-		{name: "wrong user", path: "/login", user: "wrong", pass: "密码:test-pass", want: 401},
-		{name: "correct Unicode credentials", path: "/login", user: "entry", pass: "密码:test-pass", want: 204},
+		{name: "wrong user", path: "/login", user: "wrong", pass: "密碼:test-pass", want: 401},
+		{name: "correct Unicode credentials", path: "/login", user: "entry", pass: "密碼:test-pass", want: 204},
 		{name: "gate cookie and bearer", path: "/api/tasks", cookie: cookie, bearer: adminJWT, want: 204},
 		{name: "admin JWT cannot bypass gate", path: "/api/tasks", bearer: adminJWT, want: 401},
 		{name: "tampered cookie", path: "/login", cookie: &http.Cookie{Name: basicAuthCookie, Value: cookie.Value + "x"}, want: 401},

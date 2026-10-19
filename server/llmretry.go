@@ -7,14 +7,14 @@ import (
 	"github.com/Autumn-27/artex/db"
 )
 
-// 重试策略的服务端解析，见 docs/LLM重试设计.md。五层里：
-//   - 建连 / 空响应 / 同 provider 安全窗口 是「跟着端点走」的，每个 LLM 配置可以覆盖
-//     全局默认（profile 的某项留空就继承全局，全局也没配就用内置默认）；
-//   - 熔断 / 意图重跑 是进程级的，只有全局一份。
+// 重試策略的服務端解析，見 docs/LLM重試設計.md。五層裡：
+//   - 建連 / 空回應 / 同 provider 安全視窗 是「跟著端點走」的，每個 LLM 配置可以覆蓋
+//     全域預設（profile 的某項留空就繼承全域，全域也沒配就用內建預設）；
+//   - 熔斷 / 意圖重跑 是程序級的，只有全域一份。
 //
-// 全局策略读一次 DB 一行 settings，调用点都在低频路径（构建 provider、work 收尾、
-// 保存配置），不值得再加一层缓存；熔断参数是例外——它在失败路径上每次都要读，所以
-// 由 applyRetryPolicy 推给 Registry 保存。
+// 全域策略讀一次 DB 一行 settings，呼叫點都在低頻路徑（構建 provider、work 收尾、
+// 儲存配置），不值得再加一層快取；熔斷引數是例外——它在失敗路徑上每次都要讀，所以
+// 由 applyRetryPolicy 推給 Registry 儲存。
 
 // retryPolicy reads the global policy; a nil DB yields the zero policy (all
 // layers on their built-in defaults).
@@ -33,8 +33,8 @@ func resolveRetry(o db.RetryOverride, pol db.LLMRetryPolicy) agent.RetryConfig {
 	empty := o.Empty.Or(pol.Empty)
 	stream := o.Stream.Or(pol.Stream)
 	return agent.RetryConfig{
-		// 次数在这里保持「0=默认 / 负=关闭」的原始语义:SDK 的 MaxRetries /
-		// EmptyResponseRetries 与之完全同构,交给它自己解析即可。
+		// 次數在這裡保持「0=預設 / 負=關閉」的原始語義:SDK 的 MaxRetries /
+		// EmptyResponseRetries 與之完全同構,交給它自己解析即可。
 		ConnectAttempts: connect.Attempts, ConnectInterval: connect.Interval(),
 		EmptyAttempts: empty.Attempts, EmptyInterval: empty.Interval(),
 		StreamAttempts: stream.Attempts, StreamInterval: stream.Interval(),
@@ -49,8 +49,8 @@ func (s *Server) applyProfileRetry(cfg *agent.Config, p *db.LLMProfile) {
 	cfg.Retry = resolveRetry(p.Retry, s.retryPolicy())
 }
 
-// 熔断(轮询冷却)的默认值,与 llmpool 内置的一致 —— 这里只在「用户配了值」时才覆盖。
-// 意图重跑的默认值见 engine.go 的 modelErrorRetries / modelErrorRetryBackoff。
+// 熔斷(輪詢冷卻)的預設值,與 llmpool 內建的一致 —— 這裡只在「使用者配了值」時才覆蓋。
+// 意圖重跑的預設值見 engine.go 的 modelErrorRetries / modelErrorRetryBackoff。
 
 // applyRetryPolicy pushes the process-wide layers of the policy into the objects
 // that consume them on a hot path: the circuit-breaker registry. Called at
@@ -80,17 +80,17 @@ func (e *Engine) modelErrorRetryPolicy() (retries int, backoff time.Duration) {
 }
 
 // emptyTurnNudgeLimit resolves how many empty-turn continuations one work may
-// inject (see steerHooks.Stop). It deliberately reuses layer ②'s knob —— 「空响应
-// 重试次数」:两者是同一件事的两种手段。SDK 那层管「一个内容块都没有」，手段是把
-// 同一个请求原样重发;这里管「只有思考、既无正文也无工具」，手段是追加一条指令让
-// 模型带着已有思考接着做(原样重发对这种由上下文形状决定的空转没有意义)。判空口径
-// 不同是因为 SDK 以「有没有 yield 过事件」为准，而思考增量本身就是事件——但用户配
-// 「空响应重试几次」时想表达的是「模型没产出实质内容就再来一次」，两层共用一个次数
-// 才对得上这个心智。
+// inject (see steerHooks.Stop). It deliberately reuses layer ②'s knob —— 「空回應
+// 重試次數」:兩者是同一件事的兩種手段。SDK 那層管「一個內容塊都沒有」，手段是把
+// 同一個請求原樣重發;這裡管「只有思考、既無正文也無工具」，手段是追加一條指令讓
+// 模型帶著已有思考接著做(原樣重發對這種由上下文形狀決定的空轉沒有意義)。判空口徑
+// 不同是因為 SDK 以「有沒有 yield 過事件」為準，而思考增量本身就是事件——但使用者配
+// 「空回應重試幾次」時想表達的是「模型沒產出實質內容就再來一次」，兩層共用一個次數
+// 才對得上這個心智。
 //
-// 读全局策略而不是某个 profile 的覆盖:一个 run 中途可能因故障转移换 profile，而这
-// 是整条意图的总量闸，不该跟着换端点而变。语义与 SDK 的 emptyRetries() 同构:
-// 0 = 默认 defaultEmptyTurnNudges;-1(负) = 关闭空转续跑;>0 = 用该值。
+// 讀全域策略而不是某個 profile 的覆蓋:一個 run 中途可能因故障轉移換 profile，而這
+// 是整條意圖的總量閘，不該跟著換端點而變。語義與 SDK 的 emptyRetries() 同構:
+// 0 = 預設 defaultEmptyTurnNudges;-1(負) = 關閉空轉續跑;>0 = 用該值。
 func (e *Engine) emptyTurnNudgeLimit() int {
 	if e == nil || e.m == nil || e.m.pg == nil {
 		return defaultEmptyTurnNudges

@@ -18,13 +18,13 @@ type goalSpec struct {
 }
 
 // launchTask runs the shared post-creation sequence for a task created via ANY
-// path (HTTP createTask 或 orchestration spawn_task),避免两处复制粘贴:
-//  1. seed 根资产,喂给事件驱动 loop;
-//  2. 可选种子意图,worker 免等首轮 planner 直接开跑;
-//  3. 后台异步做目标分解(发「第 0 轮目标拆解」round + LLM 分解步骤 + 逐条 goal,页面可见),
-//     分解完再 engine.Run —— 引擎在 goal 节点就绪后才启动,避免 planner 抢在 goal 之前跑的竞态。
+// path (HTTP createTask 或 orchestration spawn_task),避免兩處複製貼上:
+//  1. seed 根資產,餵給事件驅動 loop;
+//  2. 可選種子意圖,worker 免等首輪 planner 直接開跑;
+//  3. 後臺非同步做目標分解(發「第 0 輪目標拆解」round + LLM 分解步驟 + 逐條 goal,頁面可見),
+//     分解完再 engine.Run —— 引擎在 goal 節點就緒後才啟動,避免 planner 搶在 goal 之前跑的競態。
 //
-// 异步(goroutine)所以调用方立即返回,两条路径行为一致:秒建任务、后台拆目标。
+// 非同步(goroutine)所以呼叫方立即返回,兩條路徑行為一致:秒建任務、後臺拆目標。
 func (s *Server) launchTask(t *Task, seedText string, seedFirstIntent bool) {
 	if !s.engine.beginTaskOperation(t.ID) {
 		return
@@ -35,7 +35,7 @@ func (s *Server) launchTask(t *Task, seedText string, seedFirstIntent bool) {
 	}
 	s.engine.decInflight(t.ID)
 	if _, err := s.admitTask(t, "bootstrap"); err != nil {
-		log.Printf("[concurrency] task %s 启动失败: %v", t.ID, err)
+		log.Printf("[concurrency] task %s 啟動失敗: %v", t.ID, err)
 	}
 }
 
@@ -45,7 +45,7 @@ func (s *Server) startTaskEngine(t *Task) {
 		return
 	}
 	s.engine.emitActivity(t, db.Activity{Worker: "planner", Kind: "round",
-		Summary: "第 0 轮目标拆解"})
+		Summary: "第 0 輪目標拆解"})
 	goals := s.createGoals(ctx, t, func(r db.Activity) {
 		s.engine.emitActivity(t, r)
 	})
@@ -137,15 +137,15 @@ func (s *Server) admitTaskWhenScheduled(t *Task, mode string, requirePaused, sch
 			return false, err
 		}
 		if !managed {
-			return false, fmt.Errorf("人工暂停优先，计划不能恢复")
+			return false, fmt.Errorf("人工暫停優先，計劃不能恢復")
 		}
 	}
 	if requirePaused {
 		if isTerminalStatus(lifecycle.Status) {
-			return false, fmt.Errorf("终态任务不能执行继续")
+			return false, fmt.Errorf("終態任務不能執行繼續")
 		}
 		if !lifecycle.Paused {
-			return false, fmt.Errorf("仅已暂停的任务可以继续")
+			return false, fmt.Errorf("僅已暫停的任務可以繼續")
 		}
 		mode = s.resumeAdmissionMode(t)
 	}
@@ -189,8 +189,8 @@ func (s *Server) admitTaskWhenScheduled(t *Task, mode string, requirePaused, sch
 	// this ordering, its already-running worker loops can claim the newly-opened
 	// intent in the gap between status=running and queued=true.
 	if shouldQueue || wasTerminal || wasPaused || wasQueued {
-		s.engine.Pause(t.ID, agent.Causef("queued_for_admission", "任务等待运行准入",
-			"任务正在等待并发队列或准入状态提交，本次执行已停止；只有获得运行槽后才会重新领取意图"))
+		s.engine.Pause(t.ID, agent.Causef("queued_for_admission", "任務等待執行准入",
+			"任務正在等待併發佇列或准入狀態提交，本次執行已停止；只有獲得執行槽後才會重新領取意圖"))
 	}
 
 	status := lifecycle.Status
@@ -211,12 +211,12 @@ func (s *Server) admitTaskWhenScheduled(t *Task, mode string, requirePaused, sch
 	}
 	if shouldQueue {
 		if !wasQueued {
-			summary := fmt.Sprintf("已排队：达到并发上限 %d，等待空位后自动开始", limit)
+			summary := fmt.Sprintf("已排隊：達到併發上限 %d，等待空位後自動開始", limit)
 			switch {
 			case !ready:
-				summary = "已排队：当前没有可运行的 LLM 配置，配置恢复后自动开始"
+				summary = "已排隊：當前沒有可執行的 LLM 配置，配置恢復後自動開始"
 			case readyBacklog:
-				summary = "已排队：已有更早的任务等待运行，将按 FIFO 顺序自动开始"
+				summary = "已排隊：已有更早的任務等待執行，將按 FIFO 順序自動開始"
 			}
 			s.engine.emitActivity(t, db.Activity{Worker: "system", Kind: "text", Summary: summary})
 		}
@@ -278,15 +278,15 @@ func (s *Server) reconcileConcurrency() {
 				continue
 			}
 			mode := s.resumeAdmissionMode(task)
-			s.engine.Pause(task.ID, agent.Causef("llm_unavailable_queued", "LLM 不可用，任务进入等待队列",
-				"任务当前无法解析可运行的 Planner/Worker LLM，已释放并发槽；配置恢复后按队列顺序继续"))
+			s.engine.Pause(task.ID, agent.Causef("llm_unavailable_queued", "LLM 不可用，任務進入等待佇列",
+				"任務當前無法解析可執行的 Planner/Worker LLM，已釋放併發槽；配置恢復後按佇列順序繼續"))
 			if err := s.m.EnqueueTask(task.ID, mode); err != nil {
 				s.engine.Resume(task)
-				log.Printf("[concurrency] task %s 因 LLM 不可用入队失败: %v", task.ID, err)
+				log.Printf("[concurrency] task %s 因 LLM 不可用入隊失敗: %v", task.ID, err)
 				continue
 			}
 			s.engine.emitActivity(task, db.Activity{Worker: "system", Kind: "text",
-				Summary: "已排队：当前没有可运行的 LLM 配置，配置恢复后自动开始"})
+				Summary: "已排隊：當前沒有可執行的 LLM 配置，配置恢復後自動開始"})
 		}
 	}
 
@@ -358,18 +358,18 @@ func (s *Server) reconcileConcurrency() {
 	}
 }
 
-// reviveTask 让一个已停下的任务重新跑起来:把终态(done/failed/timeout)拉回 running、
-// 解除暂停,并(重)启动引擎循环 + 唤醒。已在 running 且未暂停的任务:只剩 Run 里的一次
-// Notify,近乎无副作用。用于「主 agent set_goals 新增目标」和「重跑 blocked 意图」两处。
+// reviveTask 讓一個已停下的任務重新跑起來:把終態(done/failed/timeout)拉回 running、
+// 解除暫停,並(重)啟動引擎迴圈 + 喚醒。已在 running 且未暫停的任務:只剩 Run 裡的一次
+// Notify,近乎無副作用。用於「主 agent set_goals 新增目標」和「重跑 blocked 意圖」兩處。
 //
-// 为什么必须显式复活:planner/worker 循环的终态门(engine.go)会吞掉普通 notify——光改
-// 图 + Notify 唤不醒已判完成的任务;重启后终态任务的 goroutine 也可能已不在,故还要 Run。
+// 為什麼必須顯式復活:planner/worker 迴圈的終態門(engine.go)會吞掉普通 notify——光改
+// 圖 + Notify 喚不醒已判完成的任務;重啟後終態任務的 goroutine 也可能已不在,故還要 Run。
 func (s *Server) reviveTask(t *Task) {
 	if t == nil {
 		return
 	}
 	if _, err := s.admitTask(t, "resume"); err != nil {
-		log.Printf("[revive] task %s 恢复失败: %v", t.ID, err)
+		log.Printf("[revive] task %s 恢復失敗: %v", t.ID, err)
 	}
 }
 
@@ -408,7 +408,7 @@ func (s *Server) createGoals(ctx context.Context, t *Task, emit func(db.Activity
 		// as a single goal so the task still has something to judge against. This is the
 		// only path that writes here — decomposed goals are already persisted by the tool.
 		if g := strings.TrimSpace(t.Goal); g != "" {
-			log.Printf("[goals] task %s: LLM 目标拆解无产出，回退为「原始目标作为单目标」", t.ID)
+			log.Printf("[goals] task %s: LLM 目標拆解無產出，回退為「原始目標作為單目標」", t.ID)
 			origin, _ := t.Store.OriginFactID()
 			id, _ := t.Store.AddNode(db.KindGoal, map[string]any{"text": g}, 0, "open", "system", nil)
 			if origin > 0 && id > 0 {

@@ -5,16 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// 抽屉/对话框(Sheet/Dialog)的 onInteractOutside 关闭判定辅助。
+// 抽屜/對話方塊(Sheet/Dialog)的 onInteractOutside 關閉判定輔助。
 //
-// 背景:抽屉内的 Radix 弹层(Select 下拉、DropdownMenu、Popover 等)会 portal 到抽屉
-// 之外。开着弹层时点遮罩/抽屉外想收起它,这一次 pointerdown 会被 Select 和 Sheet 两个
-// DismissableLayer 同时处理;Select 先关闭且是 discrete 事件、React 会同步 flush,于是
-// 轮到 Sheet 的处理器时弹层的 data-state 早已翻成 closed —— 在"当下"检测弹层是否打开
-// 天然不可靠(实测已验证)。
+// 背景:抽屜內的 Radix 彈層(Select 下拉、DropdownMenu、Popover 等)會 portal 到抽屜
+// 之外。開著彈層時點遮罩/抽屜外想收起它,這一次 pointerdown 會被 Select 和 Sheet 兩個
+// DismissableLayer 同時處理;Select 先關閉且是 discrete 事件、React 會同步 flush,於是
+// 輪到 Sheet 的處理器時彈層的 data-state 早已翻成 closed —— 在"當下"檢測彈層是否開啟
+// 天然不可靠(實測已驗證)。
 //
-// 正确做法:Radix 的 pointerdown 监听在冒泡阶段;我们在 capture 阶段(早于它)先把
-// "此刻有没有弹层开着"记录下来,onInteractOutside 再读这个记录值来决定是否放行关闭。
+// 正確做法:Radix 的 pointerdown 監聽在冒泡階段;我們在 capture 階段(早於它)先把
+// "此刻有沒有彈層開著"記錄下來,onInteractOutside 再讀這個記錄值來決定是否放行關閉。
 function isRadixOverlayOpenNow(): boolean {
   if (typeof document === "undefined") return false;
   return !!document.querySelector(
@@ -35,26 +35,26 @@ if (typeof document !== "undefined") {
     () => {
       overlayOpenAtLastPointerDown = isRadixOverlayOpenNow();
     },
-    true, // capture:抢在 Radix 冒泡阶段的 pointerdown 处理器之前记录
+    true, // capture:搶在 Radix 冒泡階段的 pointerdown 處理器之前記錄
   );
 }
 
-// radixOverlayWasOpenAtPointerDown 返回"最近一次 pointerdown 发生时是否有 Radix 弹层
-// 开着"。抽屉/对话框据此:开着弹层时点遮罩 → 只收弹层、不关自身。
+// radixOverlayWasOpenAtPointerDown 返回"最近一次 pointerdown 發生時是否有 Radix 彈層
+// 開著"。抽屜/對話方塊據此:開著彈層時點遮罩 → 只收彈層、不關自身。
 export function radixOverlayWasOpenAtPointerDown(): boolean {
   return overlayOpenAtLastPointerDown;
 }
 
-// copyText 把文本写入剪贴板,返回是否成功。
-// 背景:navigator.clipboard 仅在安全上下文(HTTPS / localhost)可用;通过 IP + HTTP
-// 访问时它为 undefined,此时降级到 execCommand("copy")。
+// copyText 把文本寫入剪貼簿,返回是否成功。
+// 背景:navigator.clipboard 僅在安全上下文(HTTPS / localhost)可用;通過 IP + HTTP
+// 訪問時它為 undefined,此時降級到 execCommand("copy")。
 export async function copyText(text: string): Promise<boolean> {
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      // 继续走降级方案
+      // 繼續走降級方案
     }
   }
   try {

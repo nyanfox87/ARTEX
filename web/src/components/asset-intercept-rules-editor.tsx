@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { AssetInterceptKind, AssetInterceptRuleInput } from "@/lib/types";
 
-// 用 NativeSelect（原生 <select>）而非 shadcn Select：这个编辑器会用在 Sheet 抽屉内，
-// shadcn Select 的下拉 portal 到 body、点击外部会触发抽屉的「点击外部关闭」误关；原生下拉无此问题。
+// 用 NativeSelect（原生 <select>）而非 shadcn Select：這個編輯器會用在 Sheet 抽屜內，
+// shadcn Select 的下拉 portal 到 body、點選外部會觸發抽屜的「點選外部關閉」誤關；原生下拉無此問題。
 export const ASSET_INTERCEPT_KIND_OPTIONS: {
   value: AssetInterceptKind;
   label: string;
@@ -22,11 +22,11 @@ export const ASSET_INTERCEPT_KIND_OPTIONS: {
   { value: "fuzzy_domain", label: "域名(模糊)", placeholder: ".gov.cn" },
   { value: "fuzzy_ip", label: "IP(模糊)", placeholder: "203.0.113." },
   { value: "fuzzy_url", label: "URL(模糊)", placeholder: "/admin" },
-  { value: "cidr", label: "CIDR 网段", placeholder: "192.168.0.0/16" },
+  { value: "cidr", label: "CIDR 網段", placeholder: "192.168.0.0/16" },
 ];
 
-// AssetInterceptRulesEditor 是「拦截/允许规则」的受控多行编辑区（拦截block/允许allow +
-// 类型 + 匹配内容 + 备注），不自带持久化——由父组件决定何时提交。
+// AssetInterceptRulesEditor 是「攔截/允許規則」的受控多行編輯區（攔截block/允許allow +
+// 型別 + 匹配內容 + 備註），不自帶持久化——由父元件決定何時提交。
 export function AssetInterceptRulesEditor({
   value,
   onChange,
@@ -48,7 +48,7 @@ export function AssetInterceptRulesEditor({
       {value.map((r, i) => {
         const ph = ASSET_INTERCEPT_KIND_OPTIONS.find((o) => o.value === r.kind)?.placeholder ?? "";
         return (
-          // biome-ignore lint/suspicious/noArrayIndexKey: 行无稳定 id，按索引受控即可
+          // biome-ignore lint/suspicious/noArrayIndexKey: 行無穩定 id，按索引受控即可
           <div key={i} className="flex items-center gap-2">
             <NativeSelect
               size="sm"
@@ -56,8 +56,8 @@ export function AssetInterceptRulesEditor({
               value={r.action}
               onChange={(e) => update(i, { action: e.target.value as "block" | "allow" })}
             >
-              <NativeSelectOption value="block">拦截</NativeSelectOption>
-              <NativeSelectOption value="allow">允许</NativeSelectOption>
+              <NativeSelectOption value="block">攔截</NativeSelectOption>
+              <NativeSelectOption value="allow">允許</NativeSelectOption>
             </NativeSelect>
             <NativeSelect
               size="sm"
@@ -79,7 +79,7 @@ export function AssetInterceptRulesEditor({
             />
             <Input
               className="w-[120px] shrink-0"
-              placeholder="备注(可选)"
+              placeholder="備註(可選)"
               value={r.note}
               onChange={(e) => update(i, { note: e.target.value })}
             />
@@ -96,7 +96,7 @@ export function AssetInterceptRulesEditor({
         );
       })}
       <Button type="button" size="sm" variant="outline" className="w-fit" onClick={add}>
-        <PlusIcon className="size-4" /> 添加一条
+        <PlusIcon className="size-4" /> 新增一條
       </Button>
     </div>
   );

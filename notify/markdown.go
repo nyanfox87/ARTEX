@@ -5,37 +5,37 @@ import (
 	"strings"
 )
 
-// 本文件是「Markdown 系」渠道（钉钉、企业微信）共用的消息渲染。
-// 飞书用卡片 JSON、Telegram 用 HTML、邮件用 HTML，各自在适配器里渲染。
+// 本檔案是「Markdown 系」渠道（釘釘、企業微信）共用的訊息渲染。
+// 飛書用卡片 JSON、Telegram 用 HTML、郵件用 HTML，各自在介面卡裡渲染。
 
-// maxAssetsShown 是消息里最多列出几个资产。一个漏洞可能锚定几十个资产，
-// 全列会挤爆消息且没有信息价值——第 4 个之后的域名没人会在 IM 里看。
+// maxAssetsShown 是訊息裡最多列出幾個資產。一個漏洞可能錨定幾十個資產，
+// 全列會擠爆訊息且沒有資訊價值——第 4 個之後的域名沒人會在 IM 裡看。
 const maxAssetsShown = 3
 
-// maxSummaryRunes 是摘要被压缩到多少字符。IM 消息是「提示去看详情」，
-// 不是报告本体，完整内容在平台里。
+// maxSummaryRunes 是摘要被壓縮到多少字元。IM 訊息是「提示去看詳情」，
+// 不是報告本體，完整內容在平臺裡。
 const maxSummaryRunes = 120
 
-// markdownReservedBytes 预留给消息头部（汇总行 + 级别分布 + 可能的截断提示）
-// 与尾部（平台链接）。按整条打包时把这部分从预算里扣掉，保证头尾不会被截掉——
-// 头尾一旦被截，读者连「这是哪一批、还有多少条没显示」都看不出来。
+// markdownReservedBytes 預留給訊息頭部（彙總行 + 級別分佈 + 可能的截斷提示）
+// 與尾部（平臺連結）。按整條打包時把這部分從預算里扣掉，保證頭尾不會被截掉——
+// 頭尾一旦被截，讀者連「這是哪一批、還有多少條沒顯示」都看不出來。
 const markdownReservedBytes = 320
 
-// markdownEscape 转义 markdown 元字符。
+// markdownEscape 轉義 markdown 元字元。
 //
-// 为什么必须做：漏洞标题、摘要、类型、资产展示名全都来自**不可信来源**——
-// 标题与摘要出自模型输出（模型读的是被测目标的响应），资产的 url 则是扫描
-// 得到的完整 URL（含目标可控的查询串）。不转义的话，一条标题为
+// 為什麼必須做：漏洞標題、摘要、型別、資產展示名全都來自**不可信來源**——
+// 標題與摘要出自模型輸出（模型讀的是被測目標的回應），資產的 url 則是掃描
+// 得到的完整 URL（含目標可控的查詢串）。不轉義的話，一條標題為
 //
-//	登录口 SQL 注入\n[紧急：点此验证账号](http://attacker.tld)
+//	登入口 SQL 注入\n[緊急：點此驗證帳號](http://attacker.tld)
 //
-// 的漏洞会在安全工程师的钉钉/飞书里渲染成**可点击的外链**；而
-// `![](http://attacker.tld/beacon)` 会在渲染时被客户端拉取，等于通报了
-// 「这条漏洞已经被看过」并泄露阅读者 IP。就算是无恶意的内容，注入的粗体或
-// 引用块也能把下面的严重漏洞挤出折叠线。
+// 的漏洞會在安全工程師的釘釘/飛書裡渲染成**可點選的外鏈**；而
+// `![](http://attacker.tld/beacon)` 會在渲染時被客戶端拉取，等於通報了
+// 「這條漏洞已經被看過」並洩露閱讀者 IP。就算是無惡意的內容，注入的粗體或
+// 引用塊也能把下面的嚴重漏洞擠出摺疊線。
 //
-// 转义集合覆盖标题/链接/强调/列表/引用/删除线这几类会改变结构或产生可点击
-// 元素的字符。`\` 必须最先处理，否则会把后面补上的反斜杠再次转义。
+// 轉義集合覆蓋標題/連結/強調/列表/引用/刪除線這幾類會改變結構或產生可點選
+// 元素的字元。`\` 必須最先處理，否則會把後面補上的反斜槓再次轉義。
 func markdownEscape(s string) string {
 	replacer := strings.NewReplacer(
 		`\`, `\\`,
@@ -55,24 +55,24 @@ func markdownEscape(s string) string {
 	return replacer.Replace(s)
 }
 
-// markdownText 把不可信文本压成单行并转义，供 markdown 正文使用。
-// 单行化是转义之外的另一半：换行本身就能伪造出新的列表项或引用块，
-// 而转义字符挡不住它。
+// markdownText 把不可信文本壓成單行並轉義，供 markdown 正文使用。
+// 單行化是轉義之外的另一半：換行本身就能偽造出新的列表項或引用塊，
+// 而跳脫字元擋不住它。
 func markdownText(s string, maxRunes int) string {
 	return markdownEscape(OneLine(s, maxRunes))
 }
 
-// markdownTitle 返回消息标题（IM 平台的标题栏/卡片标题），内容是**未转义的原文**。
+// markdownTitle 返回訊息標題（IM 平臺的標題欄/卡片標題），內容是**未轉義的原文**。
 //
-// 这里刻意不做转义：这个标题被四种语境的渲染器共用——markdown 正文、Telegram 的
-// HTML、飞书卡片的 plain_text、以及通用 Webhook 的 JSON 与邮件主题。每个语境的
-// 转义规则都不同（markdown 转义塞进 HTML 会留下可见的反斜杠，塞进 JSON 会污染
-// 数据），所以转义必须由各自的输出端负责，见 writeItem / feishuItemLines /
-// telegramEscape。曾经在共享函数里加过 markdown 转义，结果 Telegram 消息里
-// 出现了 `\(1\)` 这种可见的反斜杠。
+// 這裡刻意不做轉義：這個標題被四種語境的渲染器共用——markdown 正文、Telegram 的
+// HTML、飛書卡片的 plain_text、以及通用 Webhook 的 JSON 與郵件主題。每個語境的
+// 轉義規則都不同（markdown 轉義塞進 HTML 會留下可見的反斜槓，塞進 JSON 會汙染
+// 資料），所以轉義必須由各自的輸出端負責，見 writeItem / feishuItemLines /
+// telegramEscape。曾經在共享函數里加過 markdown 轉義，結果 Telegram 訊息裡
+// 出現了 `\(1\)` 這種可見的反斜槓。
 func markdownTitle(m Message) string {
 	if m.Batch {
-		return fmt.Sprintf("漏洞汇总 · 共 %d 条", len(m.Items))
+		return fmt.Sprintf("漏洞彙總 · 共 %d 條", len(m.Items))
 	}
 	if len(m.Items) == 0 {
 		return "漏洞通知"
@@ -81,12 +81,12 @@ func markdownTitle(m Message) string {
 	return fmt.Sprintf("[%s] %s", SeverityLabel(it.Severity), OneLine(it.Title(), 0))
 }
 
-// markdownBody 渲染消息正文，返回正文与**实际写入的条目数**。
+// markdownBody 渲染訊息正文，返回正文與**實際寫入的條目數**。
 //
-// 返回值 kept 是这次投递真正送达的条目数，调用方据此只把前 kept 条标记为
-// 已送达——被渠道长度上限挡在外面的条目必须留待下一批，而不是跟着一起被
-// 标记成功。这正是「静默丢失」的来源：消息被截断了，但投递记录显示全部送达，
-// 没有任何地方能看出后半截从未发出。
+// 返回值 kept 是這次投遞真正送達的條目數，呼叫方據此只把前 kept 條標記為
+// 已送達——被渠道長度上限擋在外面的條目必須留待下一批，而不是跟著一起被
+// 標記成功。這正是「靜默丟失」的來源：訊息被截斷了，但投遞記錄顯示全部送達，
+// 沒有任何地方能看出後半截從未發出。
 //
 // maxBytes<=0 表示不限制。
 func markdownBody(m Message, maxBytes int) (string, int) {
@@ -96,14 +96,14 @@ func markdownBody(m Message, maxBytes int) (string, int) {
 		}
 		var b strings.Builder
 		writeItem(&b, m.Items[0], "", true)
-		// 单条消息即使超长也照发（由最终截断兜底）：一条漏洞的部分信息
-		// 也好过一条都不发。
+		// 單條訊息即使超長也照發（由最終截斷兜底）：一條漏洞的部分資訊
+		// 也好過一條都不發。
 		return TruncateBytes(b.String(), maxBytes), 1
 	}
 
 	footer := ""
 	if m.HomeURL != "" {
-		footer = fmt.Sprintf("\n[在平台中查看全部](%s)\n", m.HomeURL)
+		footer = fmt.Sprintf("\n[在平臺中檢視全部](%s)\n", m.HomeURL)
 	}
 	kept := packItemCount(m.Items, maxBytes, markdownReservedBytes, footer, byteSize, func(it Item, idx int) string {
 		var b strings.Builder
@@ -121,24 +121,24 @@ func markdownBody(m Message, maxBytes int) (string, int) {
 	return TruncateBytes(b.String(), maxBytes), kept
 }
 
-// markdownBatchIntro 渲染汇总消息的开头：时间窗、条数与级别分布。
-// 有了这些，收到汇总的人不用点进平台就能判断这批需不需要立刻处理。
+// markdownBatchIntro 渲染彙總訊息的開頭：時間窗、條數與級別分佈。
+// 有了這些，收到彙總的人不用點進平臺就能判斷這批需不需要立刻處理。
 //
-// items 是**实际装下**的条目，total 是本批应有的总数。两者不同时必须明说
-// 「还有多少条在下一条消息里」——否则读者会以为消息头写的那个数字就是全部，
-// 而后面那些从未发出的条目在界面上完全不存在。
+// items 是**實際裝下**的條目，total 是本批應有的總數。兩者不同時必須明說
+// 「還有多少條在下一條訊息裡」——否則讀者會以為訊息頭寫的那個數字就是全部，
+// 而後面那些從未發出的條目在介面上完全不存在。
 func markdownBatchIntro(m Message, items []Item, total int) string {
 	var b strings.Builder
 	if m.WindowMinutes > 0 {
-		fmt.Fprintf(&b, "**近 %d 分钟新增 %d 个漏洞**", m.WindowMinutes, total)
+		fmt.Fprintf(&b, "**近 %d 分鐘新增 %d 個漏洞**", m.WindowMinutes, total)
 	} else {
-		fmt.Fprintf(&b, "**新增 %d 个漏洞**", total)
+		fmt.Fprintf(&b, "**新增 %d 個漏洞**", total)
 	}
 	if extra := total - len(items); extra > 0 {
-		fmt.Fprintf(&b, "（本条显示前 %d 条，其余 %d 条将在下一条消息继续）", len(items), extra)
+		fmt.Fprintf(&b, "（本條顯示前 %d 條，其餘 %d 條將在下一條訊息繼續）", len(items), extra)
 	}
-	// 按级别给出分布，让读者一眼看到有没有严重项。只统计**本条实际包含**的
-	// 条目，保证「严重 3」和下面能数出来的条目一致。
+	// 按級別給出分佈，讓讀者一眼看到有沒有嚴重項。只統計**本條實際包含**的
+	// 條目，保證「嚴重 3」和下面能數出來的條目一致。
 	counts := map[string]int{}
 	for _, it := range items {
 		counts[it.Severity]++
@@ -156,18 +156,18 @@ func markdownBatchIntro(m Message, items []Item, total int) string {
 	return b.String()
 }
 
-// writeItem 渲染单个漏洞条目。
+// writeItem 渲染單個漏洞條目。
 //
-// prefix 用于汇总列表的序号；single=true 时渲染完整版（含摘要与回链），
-// 汇总列表里只渲染一行摘要——否则 50 条汇总会变成一篇长文档。
+// prefix 用於彙總列表的序號；single=true 時渲染完整版（含摘要與回鏈），
+// 彙總列表裡只渲染一行摘要——否則 50 條彙總會變成一篇長文件。
 //
-// 所有来自外部的内容（标题/类型/资产/摘要）都过 markdownText：
-// 单行化 + 转义。回链是管理员配置的 public_base_url 拼出来的，不是不可信内容，
-// 且必须是可点的链接，所以原样输出。
+// 所有來自外部的內容（標題/型別/資產/摘要）都過 markdownText：
+// 單行化 + 轉義。回鏈是管理員配置的 public_base_url 拼出來的，不是不可信內容，
+// 且必須是可點的連結，所以原樣輸出。
 func writeItem(b *strings.Builder, it Item, prefix string, single bool) {
 	line := fmt.Sprintf("%s**%s · %s**", prefix, SeverityLabel(it.Severity), markdownText(it.Title(), 0))
 	if !single {
-		// 汇总模式：单行呈现，资产与摘要压缩后跟在后面。
+		// 彙總模式：單行呈現，資產與摘要壓縮後跟在後面。
 		var extras []string
 		if a := assetLine(it.Assets, maxAssetsShown); a != "" {
 			extras = append(extras, markdownText(a, 0))
@@ -183,14 +183,14 @@ func writeItem(b *strings.Builder, it Item, prefix string, single bool) {
 	}
 	b.WriteString(line + "\n")
 	if it.IsStatusChange() {
-		fmt.Fprintf(b, "**状态变更**：%s → %s\n",
+		fmt.Fprintf(b, "**狀態變更**：%s → %s\n",
 			markdownText(StatusLabel(it.FromStatus), 0), markdownText(StatusLabel(it.ToStatus), 0))
 	}
 	if it.VulnClass != "" && it.VulnClass != it.Title() {
-		fmt.Fprintf(b, "**类型**：%s\n", markdownText(it.VulnClass, 0))
+		fmt.Fprintf(b, "**型別**：%s\n", markdownText(it.VulnClass, 0))
 	}
 	if a := assetLine(it.Assets, maxAssetsShown); a != "" {
-		fmt.Fprintf(b, "**资产**：%s\n", markdownText(a, 0))
+		fmt.Fprintf(b, "**資產**：%s\n", markdownText(a, 0))
 	}
 	if it.Summary != "" {
 		if s := markdownText(it.Summary, maxSummaryRunes); s != "" {
@@ -198,6 +198,6 @@ func writeItem(b *strings.Builder, it Item, prefix string, single bool) {
 		}
 	}
 	if it.DetailURL != "" {
-		fmt.Fprintf(b, "[查看详情](%s)\n", it.DetailURL)
+		fmt.Fprintf(b, "[檢視詳情](%s)\n", it.DetailURL)
 	}
 }

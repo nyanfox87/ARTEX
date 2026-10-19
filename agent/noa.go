@@ -14,18 +14,18 @@ func noaWarn(session string) func(string) {
 	return func(msg string) { log.Printf("[noa] %s: %s", session, msg) }
 }
 
-// noa 是 norma v0.4.0 引入的「模型驱动上下文压缩」机制,作为平台实验功能由用户在
-// 系统设置中开关。它与内置 compaction 互斥:noaadapter.Enable 是唯一入口,一次挂上
-// 上下文接管器(Compactor)、Compress 工具与三段常驻提示词,不调用 Enable 即为关闭
-// (内置 compaction 照常工作)。开关由每个 agent 注入的 noaEnabledFn 解析,每 run 读
-// 一次,故切换只影响之后启动的 run,无需重建 agent。
+// noa 是 norma v0.4.0 引入的「模型驅動上下文壓縮」機制,作為平臺實驗功能由使用者在
+// 系統設定中開關。它與內建 compaction 互斥:noaadapter.Enable 是唯一入口,一次掛上
+// 上下文接管器(Compactor)、Compress 工具與三段常駐提示詞,不呼叫 Enable 即為關閉
+// (內建 compaction 照常工作)。開關由每個 agent 注入的 noaEnabledFn 解析,每 run 讀
+// 一次,故切換隻影響之後啟動的 run,無需重建 agent。
 
-// enableNoa 在解析器报告开启时把 noa 接入 opts。archiveRoot 是压缩原文的持久化基目录
-// (取全局 workDir,各 agent 统一落在 <workDir>/noa 下,不随任务/意图目录分散),sessionID
-// 命名其下的归档子目录(全局唯一,故同一基目录内不冲突)。
+// enableNoa 在解析器報告開啟時把 noa 接入 opts。archiveRoot 是壓縮原文的持久化基目錄
+// (取全域 workDir,各 agent 統一落在 <workDir>/noa 下,不隨任務/意圖目錄分散),sessionID
+// 命名其下的歸檔子目錄(全域唯一,故同一基目錄內不衝突)。
 //
-// noa 是实验功能:接入失败不得中断真实任务。发生错误时经 onWarn 上报并回退内置压缩。
-// 启用成功时清掉 opts.Compaction,避免 agentcore 因「两个上下文管理器同时设置」告警。
+// noa 是實驗功能:接入失敗不得中斷真實任務。發生錯誤時經 onWarn 上報並回退內建壓縮。
+// 啟用成功時清掉 opts.Compaction,避免 agentcore 因「兩個上下文管理器同時設定」告警。
 func enableNoa(opts *agentcore.Options, enabled func() bool, archiveRoot, sessionID string, onWarn func(string)) {
 	if enabled == nil || !enabled() {
 		return
@@ -39,10 +39,10 @@ func enableNoa(opts *agentcore.Options, enabled func() bool, archiveRoot, sessio
 		OnWarn:         onWarn,
 	}); err != nil {
 		if onWarn != nil {
-			onWarn("noa 压缩启用失败,回退内置压缩:" + err.Error())
+			onWarn("noa 壓縮啟用失敗,回退內建壓縮:" + err.Error())
 		}
 		return
 	}
-	// Compactor 覆盖 Compaction,但两者并存时 agentcore 每次会告警;明确清掉。
+	// Compactor 覆蓋 Compaction,但兩者並存時 agentcore 每次會告警;明確清掉。
 	opts.Compaction = nil
 }

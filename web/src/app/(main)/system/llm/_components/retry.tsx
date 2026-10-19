@@ -1,13 +1,13 @@
 "use client";
 
-// LLM 重试配置的共用件：五层重试各自的「次数 + 间隔」。
+// LLM 重試配置的共用件：五層重試各自的「次數 + 間隔」。
 //
-// 五层从内到外：建连(SDK) → 空响应(SDK) → 同 provider 安全窗口 → 轮询熔断 → 意图重跑。
-// 前三层跟着端点走，所以每个模型配置都能覆盖全局默认；后两层是进程级的，只有全局一份。
+// 五層從內到外：建連(SDK) → 空回應(SDK) → 同 provider 安全視窗 → 輪詢熔斷 → 意圖重跑。
+// 前三層跟著端點走，所以每個模型配置都能覆蓋全域預設；後兩層是程序級的，只有全域一份。
 //
-// 所有输入都遵循同一套「留空 = 不配置」语义，与后端 db.RetryRule 一致：
-//   次数   空/0 = 用内置默认 | -1 = 关闭这层重试 | >0 = 用这个次数
-//   间隔   空/0 = 用这层原本的指数退避 | >0 = 改用这个固定毫秒间隔
+// 所有輸入都遵循同一套「留空 = 不配置」語義，與後端 db.RetryRule 一致：
+//   次數   空/0 = 用內建預設 | -1 = 關閉這層重試 | >0 = 用這個次數
+//   間隔   空/0 = 用這層原本的指數退避 | >0 = 改用這個固定毫秒間隔
 
 import * as React from "react";
 
@@ -34,89 +34,89 @@ const ZERO_POLICY: LLMRetryPolicy = {
 
 type LayerMeta = {
   title: string;
-  /** 这层重试发生在哪、由谁执行 */
+  /** 這層重試發生在哪、由誰執行 */
   where: string;
-  /** 什么样的错误会走到这层——具体到状态码，别让人猜 */
+  /** 什麼樣的錯誤會走到這層——具體到狀態碼，別讓人猜 */
   trigger: string;
-  /** 长得像但【不】走这层的错误，省得填了没反应还以为是 bug */
+  /** 長得像但【不】走這層的錯誤，省得填了沒反應還以為是 bug */
   skips?: string;
   desc: string;
   attemptsLabel: string;
-  /** 次数留空时的默认值，用于占位符 */
+  /** 次數留空時的預設值，用於佔位符 */
   defAttempts: number;
-  /** 间隔留空时的默认策略，用于占位符 */
+  /** 間隔留空時的預設策略，用於佔位符 */
   defInterval: string;
-  /** 次数填 -1 的含义 */
+  /** 次數填 -1 的含義 */
   offHint: string;
 };
 
 export const RETRY_LAYERS = {
   connect: {
-    title: "建连重试",
+    title: "建連重試",
     where: "SDK · 拿到 200 之前",
     trigger:
-      "连不上或还没拿到 200：连接重置 / 读写超时 / DNS 失败等网络层错误，以及 HTTP 408、429、500、502、503、504。",
-    skips: "其余状态码（400 / 401 / 403 / 404 / 413 / 422 等）都是确定性拒绝，重发也一样失败，直接上抛。",
-    desc: "原样重发同一个请求。流一旦开始（已经拿到 200），中途断开就不归这层管了。",
-    attemptsLabel: "重试次数",
+      "連不上或還沒拿到 200：連線重置 / 讀寫超時 / DNS 失敗等網路層錯誤，以及 HTTP 408、429、500、502、503、504。",
+    skips: "其餘狀態碼（400 / 401 / 403 / 404 / 413 / 422 等）都是確定性拒絕，重發也一樣失敗，直接上拋。",
+    desc: "原樣重發同一個請求。流一旦開始（已經拿到 200），中途斷開就不歸這層管了。",
+    attemptsLabel: "重試次數",
     defAttempts: 3,
-    defInterval: "0.5s→1s→2s 指数（封顶 8s）",
-    offHint: "-1 = 一次都不重试，失败立刻上抛",
+    defInterval: "0.5s→1s→2s 指數（封頂 8s）",
+    offHint: "-1 = 一次都不重試，失敗立刻上拋",
   },
   empty: {
-    title: "空响应重试",
-    where: "SDK · 仅 openai 格式",
+    title: "空回應重試",
+    where: "SDK · 僅 openai 格式",
     trigger:
-      "HTTP 200、finish_reason 是正常 stop，但整条响应一个内容块都没有——网关空帧、思考字段丢帧、采样打嗝都会长这样。",
-    skips: "因 max_tokens 截断而没有内容的不算（那要靠调高输出上限解决，重发只会再撞一次）。",
-    desc: "重发整个 prompt，所以在长上下文上比较贵，次数不宜给大。",
-    attemptsLabel: "重试次数",
+      "HTTP 200、finish_reason 是正常 stop，但整條回應一個內容塊都沒有——閘道器空幀、思考欄位丟幀、取樣打嗝都會長這樣。",
+    skips: "因 max_tokens 截斷而沒有內容的不算（那要靠調高輸出上限解決，重發只會再撞一次）。",
+    desc: "重發整個 prompt，所以在長上下文上比較貴，次數不宜給大。",
+    attemptsLabel: "重試次數",
     defAttempts: 2,
-    defInterval: "0.5s→1s→2s 指数（封顶 8s）",
-    offHint: "-1 = 空响应直接原样交出",
+    defInterval: "0.5s→1s→2s 指數（封頂 8s）",
+    offHint: "-1 = 空回應直接原樣交出",
   },
   stream: {
-    title: "同 provider 安全窗口重试",
-    where: "本项目 · 未交付输出前",
+    title: "同 provider 安全視窗重試",
+    where: "本專案 · 未交付輸出前",
     trigger:
-      "流已经建立（拿到 200）之后才出问题：连接中途断开、供应商 overloaded、流内的 429 / 5xx 错误事件——且一个 token 都还没交给调用方。",
+      "流已經建立（拿到 200）之後才出問題：連線中途斷開、供應商 overloaded、流內的 429 / 5xx 錯誤事件——且一個 token 都還沒交給呼叫方。",
     skips:
-      "额度耗尽（402 / insufficient_quota，交给轮询换配置）、上下文过长（413 / context length，交给压缩）、400 / 401 / 403 / 404 / 422 确定性拒绝，都不重试。",
-    desc: "在同一个配置上重放同一个请求。因为还没交付任何输出，重放不会重复模型输出或工具执行。",
-    attemptsLabel: "重试次数",
+      "額度耗盡（402 / insufficient_quota，交給輪詢換配置）、上下文過長（413 / context length，交給壓縮）、400 / 401 / 403 / 404 / 422 確定性拒絕，都不重試。",
+    desc: "在同一個配置上重放同一個請求。因為還沒交付任何輸出，重放不會重複模型輸出或工具執行。",
+    attemptsLabel: "重試次數",
     defAttempts: 2,
-    defInterval: "0.5s→1s 指数（封顶 4s）",
-    offHint: "-1 = 断流直接交给外层的意图重跑",
+    defInterval: "0.5s→1s 指數（封頂 4s）",
+    offHint: "-1 = 斷流直接交給外層的意圖重跑",
   },
   breaker: {
-    title: "轮询熔断",
-    where: "本项目 · 进程级，全局一份",
+    title: "輪詢熔斷",
+    where: "本專案 · 程序級，全域一份",
     trigger:
-      "瞬时失败（429、5xx、网络错误）连续累计到阈值时熔断；余额不足（402）、密钥失效（401 / 403）、模型不存在（404）这类确定性失败不看阈值，第一次就熔断。",
-    skips: "成功一次即清零，所以偶尔抽风的配置不会被慢慢攒到熔断。",
-    desc: "熔断后进入冷却，冷却期内轮询直接跳过这个配置。状态落库，重启不丢。",
-    attemptsLabel: "连续失败几次熔断",
+      "瞬時失敗（429、5xx、網路錯誤）連續累計到閾值時熔斷；餘額不足（402）、金鑰失效（401 / 403）、模型不存在（404）這類確定性失敗不看閾值，第一次就熔斷。",
+    skips: "成功一次即清零，所以偶爾抽風的配置不會被慢慢攢到熔斷。",
+    desc: "熔斷後進入冷卻，冷卻期內輪詢直接跳過這個配置。狀態落庫，重啟不丟。",
+    attemptsLabel: "連續失敗幾次熔斷",
     defAttempts: 3,
     defInterval: "1min→5min→30min 梯度",
-    offHint: "-1 = 瞬时失败永不熔断（确定性失败仍然熔断）",
+    offHint: "-1 = 瞬時失敗永不熔斷（確定性失敗仍然熔斷）",
   },
   intent: {
-    title: "意图重跑",
-    where: "本项目 · 进程级，全局一份",
+    title: "意圖重跑",
+    where: "本專案 · 程序級，全域一份",
     trigger:
-      "前面几层都没兜住：worker 以 model_error 收场——内层重试全部用尽，或者流已经开始交付输出后才断掉（那时重放不安全，只能整条重来）。",
-    skips: "额度耗尽已经由轮询换配置处理，不在这里重跑；任务被暂停 / 终止 / 进入收尾时立即让位，不占用退避时间。",
-    desc: "整条意图从头再跑一遍。它是最外层，一次重跑意味着里面几层的次数会再乘一遍。",
-    attemptsLabel: "重跑次数",
+      "前面幾層都沒兜住：worker 以 model_error 收場——內層重試全部用盡，或者流已經開始交付輸出後才斷掉（那時重放不安全，只能整條重來）。",
+    skips: "額度耗盡已經由輪詢換配置處理，不在這裡重跑；任務被暫停 / 終止 / 進入收尾時立即讓位，不佔用退避時間。",
+    desc: "整條意圖從頭再跑一遍。它是最外層，一次重跑意味著裡面幾層的次數會再乘一遍。",
+    attemptsLabel: "重跑次數",
     defAttempts: 2,
     defInterval: "固定 3s",
-    offHint: "-1 = 不重跑，该意图直接判为 blocked",
+    offHint: "-1 = 不重跑，該意圖直接判為 blocked",
   },
 } satisfies Record<string, LayerMeta>;
 
 type LayerKey = keyof typeof RETRY_LAYERS;
 
-/** 毫秒的人话，只用于在输入框旁边回显，免得数零。 */
+/** 毫秒的人話，只用於在輸入框旁邊回顯，免得數零。 */
 function humanMs(ms: number) {
   if (!Number.isFinite(ms) || ms <= 0) return "";
   if (ms < 1000) return `${ms}ms`;
@@ -124,7 +124,7 @@ function humanMs(ms: number) {
   return `${Number((ms / 60_000).toFixed(2))}min`;
 }
 
-/** 受控数字输入：空串 ↔ 0，中间态（"-"、"1e"）原样留在本地，不打扰父级。 */
+/** 受控數字輸入：空串 ↔ 0，中間態（"-"、"1e"）原樣留在本地，不打擾父級。 */
 function NumField({
   id,
   value,
@@ -139,8 +139,8 @@ function NumField({
   min: number;
 }) {
   const [text, setText] = React.useState(value === 0 ? "" : String(value));
-  // 父级换了一整套值（读取到策略、切换配置）时跟上；自己敲字时不会走到这里，
-  // 因为那时 value 已经等于本地文本 parse 后的结果。
+  // 父級換了一整套值（讀取到策略、切換配置）時跟上；自己敲字時不會走到這裡，
+  // 因為那時 value 已經等於本地文本 parse 後的結果。
   React.useEffect(() => {
     const incoming = value === 0 ? "" : String(value);
     setText((cur) => (Number(cur || 0) === value ? cur : incoming));
@@ -162,7 +162,7 @@ function NumField({
   );
 }
 
-/** 一层重试的两个旋钮。idPrefix 用来在同一页出现多次时保住 label 的 htmlFor。 */
+/** 一層重試的兩個旋鈕。idPrefix 用來在同一頁出現多次時保住 label 的 htmlFor。 */
 export function RetryRuleFields({
   layer,
   idPrefix,
@@ -174,7 +174,7 @@ export function RetryRuleFields({
   idPrefix: string;
   value: LLMRetryRule;
   onChange: (r: LLMRetryRule) => void;
-  /** true = 配置抽屉里的紧凑版：省掉展开说明，只留「什么错误会走到这层」这一句 */
+  /** true = 配置抽屜裡的緊湊版：省掉展開說明，只留「什麼錯誤會走到這層」這一句 */
   compact?: boolean;
 }) {
   const meta = RETRY_LAYERS[layer];
@@ -186,13 +186,13 @@ export function RetryRuleFields({
           <Label className="text-sm">{meta.title}</Label>
           <span className="text-muted-foreground text-xs">{meta.where}</span>
         </div>
-        {/* 哪些错误会走到这层，具体到状态码——填了旋钮却看不到效果，多半是错误压根不落在这层。 */}
+        {/* 哪些錯誤會走到這層，具體到狀態碼——填了旋鈕卻看不到效果，多半是錯誤壓根不落在這層。 */}
         <p className="text-muted-foreground text-xs">
-          <span className="font-medium text-foreground">触发</span>：{meta.trigger}
+          <span className="font-medium text-foreground">觸發</span>：{meta.trigger}
         </p>
         {!compact && meta.skips && (
           <p className="text-muted-foreground text-xs">
-            <span className="font-medium text-foreground">不走这层</span>：{meta.skips}
+            <span className="font-medium text-foreground">不走這層</span>：{meta.skips}
           </p>
         )}
         {!compact && <p className="text-muted-foreground text-xs">{meta.desc}</p>}
@@ -206,30 +206,30 @@ export function RetryRuleFields({
             id={`${idPrefix}-${layer}-n`}
             min={-1}
             value={value.attempts}
-            placeholder={`默认 ${meta.defAttempts}`}
+            placeholder={`預設 ${meta.defAttempts}`}
             onChange={(n) => onChange({ ...value, attempts: n })}
           />
         </div>
         <div className="flex items-center gap-2">
           <Label htmlFor={`${idPrefix}-${layer}-ms`} className="text-muted-foreground text-xs">
-            间隔 ms
+            間隔 ms
           </Label>
           <NumField
             id={`${idPrefix}-${layer}-ms`}
             min={0}
             value={value.interval_ms}
-            placeholder="默认退避"
+            placeholder="預設退避"
             onChange={(n) => onChange({ ...value, interval_ms: n })}
           />
           <span className="text-muted-foreground text-xs">{human ? `固定 ${human}` : meta.defInterval}</span>
         </div>
       </div>
-      {!compact && <p className="text-muted-foreground text-xs">留空 = 用默认；{meta.offHint}。</p>}
+      {!compact && <p className="text-muted-foreground text-xs">留空 = 用預設；{meta.offHint}。</p>}
     </div>
   );
 }
 
-/** 模型配置抽屉里的三层覆盖（跟着端点走的那三层）。 */
+/** 模型配置抽屜裡的三層覆蓋（跟著端點走的那三層）。 */
 export function ProfileRetryFields({
   value,
   onChange,
@@ -240,10 +240,10 @@ export function ProfileRetryFields({
   return (
     <div className="grid gap-3 rounded-lg border p-3">
       <div className="grid gap-0.5">
-        <Label className="text-sm">重试覆盖</Label>
+        <Label className="text-sm">重試覆蓋</Label>
         <p className="text-muted-foreground text-xs">
-          只对这个配置生效，覆盖「重试与退避」里的全局默认。每格留空 = 跟随全局；次数填 -1 = 关掉这层重试；
-          间隔填了就用固定间隔取代指数退避。熔断与意图重跑是进程级的，只能在全局那页调。
+          只對這個配置生效，覆蓋「重試與退避」裡的全域預設。每格留空 = 跟隨全域；次數填 -1 = 關掉這層重試；
+          間隔填了就用固定間隔取代指數退避。熔斷與意圖重跑是程序級的，只能在全域那頁調。
         </p>
       </div>
       {(["connect", "empty", "stream"] as const).map((k) => (
@@ -261,7 +261,7 @@ export function ProfileRetryFields({
   );
 }
 
-/** 「重试与退避」tab：五层的全局默认值。 */
+/** 「重試與退避」tab：五層的全域預設值。 */
 export function RetryPolicyPanel() {
   const [policy, setPolicy] = React.useState<LLMRetryPolicy>(ZERO_POLICY);
   const [loading, setLoading] = React.useState(true);
@@ -273,7 +273,7 @@ export function RetryPolicyPanel() {
       const p = await api.llmRetryPolicy();
       setPolicy({ ...ZERO_POLICY, ...p });
     } catch (e) {
-      toast.error(`读取重试策略失败：${(e as Error).message}`);
+      toast.error(`讀取重試策略失敗：${(e as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -287,12 +287,12 @@ export function RetryPolicyPanel() {
     if (saving) return;
     setSaving(true);
     try {
-      // 后端会把越界值夹回区间并回传，直接用回传值刷新，所见即所存。
+      // 後端會把越界值夾回區間並回傳，直接用回傳值重新整理，所見即所存。
       const saved = await api.saveLLMRetryPolicy(policy);
       setPolicy({ ...ZERO_POLICY, ...saved });
-      toast.success("已保存，即时生效（正在跑的这一轮调用仍用旧参数）");
+      toast.success("已儲存，即時生效（正在跑的這一輪呼叫仍用舊引數）");
     } catch (e) {
-      toast.error(`保存失败：${(e as Error).message}`);
+      toast.error(`儲存失敗：${(e as Error).message}`);
     } finally {
       setSaving(false);
     }
@@ -303,7 +303,7 @@ export function RetryPolicyPanel() {
   if (loading) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-dashed p-10 text-muted-foreground text-sm">
-        <Loader2Icon className="size-4 animate-spin" /> 读取重试策略…
+        <Loader2Icon className="size-4 animate-spin" /> 讀取重試策略…
       </div>
     );
   }
@@ -311,12 +311,12 @@ export function RetryPolicyPanel() {
   return (
     <div className="grid gap-4">
       <div className="rounded-lg border bg-muted/30 p-3 text-muted-foreground text-xs leading-relaxed">
-        一次模型调用的失败会依次经过五层重试，由内到外：
-        <span className="text-foreground"> 建连 → 空响应 → 同 provider 安全窗口 → 轮询熔断 → 意图重跑</span>
-        。内层用尽才轮到外层，所以次数是
+        一次模型呼叫的失敗會依次經過五層重試，由內到外：
+        <span className="text-foreground"> 建連 → 空回應 → 同 provider 安全視窗 → 輪詢熔斷 → 意圖重跑</span>
+        。內層用盡才輪到外層，所以次數是
         <span className="text-foreground">相乘</span>
-        的——把每层都拉满，一次抖动能烧掉几十次请求。
-        全部留空即当前默认值，与没有这页时的行为完全一致。前三层可以在每个模型配置里单独覆盖。
+        的——把每層都拉滿，一次抖動能燒掉幾十次請求。
+        全部留空即當前預設值，與沒有這頁時的行為完全一致。前三層可以在每個模型配置裡單獨覆蓋。
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -328,10 +328,10 @@ export function RetryPolicyPanel() {
       <div className="flex gap-2">
         <Button onClick={save} disabled={saving}>
           {saving ? <Loader2Icon className="animate-spin" /> : <SaveIcon />}
-          保存
+          儲存
         </Button>
         <Button variant="outline" onClick={() => setPolicy(ZERO_POLICY)} disabled={saving}>
-          全部恢复默认
+          全部恢復預設
         </Button>
       </div>
     </div>

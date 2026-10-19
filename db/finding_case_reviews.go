@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-var ErrFindingCaseReviewBusy = errors.New("该任务已有排队或运行中的漏洞整理，请等待完成或停止后重试")
+var ErrFindingCaseReviewBusy = errors.New("該任務已有排隊或執行中的漏洞整理，請等待完成或停止後重試")
 
 type FindingCaseReviewReservation struct {
 	TaskID         int64
@@ -36,7 +36,7 @@ func (d *DB) CreateFindingCaseReviews(ctx context.Context, batches map[int64][]i
 				return err
 			}
 			if busy {
-				return fmt.Errorf("%w（任务 #%d）", ErrFindingCaseReviewBusy, task)
+				return fmt.Errorf("%w（任務 #%d）", ErrFindingCaseReviewBusy, task)
 			}
 		}
 		for _, task := range tasks {
@@ -52,12 +52,12 @@ func (d *DB) CreateFindingCaseReviews(ctx context.Context, batches map[int64][]i
 					return err
 				}
 				if source != task {
-					return errors.New("所选漏洞不属于来源任务")
+					return errors.New("所選漏洞不屬於來源任務")
 				}
 				ids = append(ids, id)
 			}
 			if len(ids) == 0 {
-				return errors.New("请选择原始上报")
+				return errors.New("請選擇原始上報")
 			}
 			raw, err := json.Marshal(ids)
 			if err != nil {

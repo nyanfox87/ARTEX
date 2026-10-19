@@ -131,7 +131,7 @@ func renderPlannerTodos(items []actool.Todo) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("\n\n【你的规划待办（跨唤醒保留，上一轮你写的）】：\n")
+	b.WriteString("\n\n【你的規劃待辦（跨喚醒保留，上一輪你寫的）】：\n")
 	for _, it := range items {
 		mark := map[actool.TodoStatus]string{actool.TodoPending: "☐", actool.TodoInProgress: "▶", actool.TodoCompleted: "✔"}[it.Status]
 		if mark == "" {
@@ -139,7 +139,7 @@ func renderPlannerTodos(items []actool.Todo) string {
 		}
 		b.WriteString(fmt.Sprintf("  %s %s\n", mark, it.Content))
 	}
-	b.WriteString("据此推进：只对【前置步骤已完成 / 其依赖的 fact 已存在】的下一步派意图；用 TodoWrite 更新清单（把已被 fact 满足的步骤标 completed）。不要重复派已在清单里 pending/in_progress 的步骤。")
+	b.WriteString("據此推進：只對【前置步驟已完成 / 其依賴的 fact 已存在】的下一步派意圖；用 TodoWrite 更新清單（把已被 fact 滿足的步驟標 completed）。不要重複派已在清單裡 pending/in_progress 的步驟。")
 	return b.String()
 }
 
@@ -150,20 +150,20 @@ func renderPlannerTodos(items []actool.Todo) string {
 //	"done"    — a worker finished intent IntentID (its output conclusion is fetched).
 //	"finding" — a worker reported a finding on intent IntentID (Detail = 摘要).
 //	"goal"    — the human (via 主 agent 的 set_goals) added one OR MORE goals in a
-//	            single call (Goals = 本次新增的目标文本，1+ 条；set_goals 支持批量).
-//	"goal_deleted" — the human deleted a goal from 总览的目标管理 (Detail = 被删目标文本).
-//	"goal_edited"  — the human edited a goal from 总览的目标管理 (OldGoal→NewGoal 文本).
-//	"cancelled" — the human deleted intent IntentID (Detail = 删除原因). The intent is
+//	            single call (Goals = 本次新增的目標文本，1+ 條；set_goals 支援批次).
+//	"goal_deleted" — the human deleted a goal from 總覽的目標管理 (Detail = 被刪目標文本).
+//	"goal_edited"  — the human edited a goal from 總覽的目標管理 (OldGoal→NewGoal 文本).
+//	"cancelled" — the human deleted intent IntentID (Detail = 刪除原因). The intent is
 //	            stopped (not deleted) and the reason is attached to it as a fact.
 type TriggerEvent struct {
 	Kind     string
 	IntentID int64
 	Detail   string
-	Summary  string   // Kind=="cancelled" 专用：删除前捕获的意图摘要（真删除后节点已不存在，无法再查）
-	Goals    []string // Kind=="goal" 专用：本次 set_goals 新增的目标文本（1 条或多条）
-	OldGoal  string   // Kind=="goal_edited" 专用：修改前的目标文本
-	NewGoal  string   // Kind=="goal_edited" 专用：修改后的目标文本
-	Hints    []string // Kind=="hint" 专用：本次 add_hint 新增的提示文本（1 条或多条）
+	Summary  string   // Kind=="cancelled" 專用：刪除前捕獲的意圖摘要（真刪除後節點已不存在，無法再查）
+	Goals    []string // Kind=="goal" 專用：本次 set_goals 新增的目標文本（1 條或多條）
+	OldGoal  string   // Kind=="goal_edited" 專用：修改前的目標文本
+	NewGoal  string   // Kind=="goal_edited" 專用：修改後的目標文本
+	Hints    []string // Kind=="hint" 專用：本次 add_hint 新增的提示文本（1 條或多條）
 }
 
 // renderTriggers spells out the change(s) that fired this round: for a finished
@@ -175,42 +175,42 @@ func renderTriggers(ts *db.ExplorationStore, evs []TriggerEvent) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("\n\n【本次触发本轮的实际变动（先看这里，再决定是否补方向）】：")
+	b.WriteString("\n\n【本次觸發本輪的實際變動（先看這裡，再決定是否補方向）】：")
 	for _, ev := range evs {
 		switch ev.Kind {
 		case "goal":
 			if len(ev.Goals) == 1 {
-				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了一个目标：%s —— 新的待达成目标，请据此补充探索方向（若尚无对应意图）。", ev.Goals[0]))
+				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了一個目標：%s —— 新的待達成目標，請據此補充探索方向（若尚無對應意圖）。", ev.Goals[0]))
 			} else {
-				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了 %d 个目标：%s —— 均为新的待达成目标，请逐一为尚无对应意图的目标补充探索方向。", len(ev.Goals), strings.Join(ev.Goals, "；")))
+				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了 %d 個目標：%s —— 均為新的待達成目標，請逐一為尚無對應意圖的目標補充探索方向。", len(ev.Goals), strings.Join(ev.Goals, "；")))
 			}
 		case "hint":
 			if len(ev.Hints) == 1 {
-				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了一条战略提示：%s —— 已挂到探索图上，请据此调整/补充探索方向（若尚无对应意图）。", ev.Hints[0]))
+				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了一條戰略提示：%s —— 已掛到探索圖上，請據此調整/補充探索方向（若尚無對應意圖）。", ev.Hints[0]))
 			} else {
-				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了 %d 条战略提示：%s —— 均已挂到探索图上，请逐一据此调整/补充探索方向。", len(ev.Hints), strings.Join(ev.Hints, "；")))
+				b.WriteString(fmt.Sprintf("\n- 人（主 agent）新增了 %d 條戰略提示：%s —— 均已掛到探索圖上，請逐一據此調整/補充探索方向。", len(ev.Hints), strings.Join(ev.Hints, "；")))
 			}
 		case "goal_deleted":
-			b.WriteString(fmt.Sprintf("\n- 人删除了该目标：%s —— 该目标已移除，请据此重判剩余目标/方向（不必再为它派意图）。", ev.Detail))
+			b.WriteString(fmt.Sprintf("\n- 人刪除了該目標：%s —— 該目標已移除，請據此重判剩餘目標/方向（不必再為它派意圖）。", ev.Detail))
 		case "goal_edited":
-			b.WriteString(fmt.Sprintf("\n- 人修改了目标，由「%s」变为「%s」—— 请据新目标调整探索方向（原方向若已不适用请停派）。", ev.OldGoal, ev.NewGoal))
+			b.WriteString(fmt.Sprintf("\n- 人修改了目標，由「%s」變為「%s」—— 請據新目標調整探索方向（原方向若已不適用請停派）。", ev.OldGoal, ev.NewGoal))
 		case "finding":
-			b.WriteString(fmt.Sprintf("\n- 意图 #%d（%s）的 worker 报告了一个 finding：%s", ev.IntentID, intentSummary(ts, ev.IntentID), ev.Detail))
+			b.WriteString(fmt.Sprintf("\n- 意圖 #%d（%s）的 worker 報告了一個 finding：%s", ev.IntentID, intentSummary(ts, ev.IntentID), ev.Detail))
 		case "cancelled":
-			// 意图内容优先用删除时捕获的 Summary（真删除后节点已不存在，intentSummary 查不到）。
+			// 意圖內容優先用刪除時捕獲的 Summary（真刪除後節點已不存在，intentSummary 查不到）。
 			sm := ev.Summary
 			if sm == "" {
 				sm = intentSummary(ts, ev.IntentID)
 			}
-			b.WriteString(fmt.Sprintf("\n- 意图 #%d 由用户删除，意图内容是：%s、删除原因是：%s。该意图已删除（不再执行）；请据此重新规划。", ev.IntentID, sm, ev.Detail))
+			b.WriteString(fmt.Sprintf("\n- 意圖 #%d 由使用者刪除，意圖內容是：%s、刪除原因是：%s。該意圖已刪除（不再執行）；請據此重新規劃。", ev.IntentID, sm, ev.Detail))
 		default: // "done"
-			b.WriteString(fmt.Sprintf("\n- 意图 #%d（%s）的 worker 结束，输出结论：%s", ev.IntentID, intentSummary(ts, ev.IntentID), workerOutput(ts, ev.IntentID)))
+			b.WriteString(fmt.Sprintf("\n- 意圖 #%d（%s）的 worker 結束，輸出結論：%s", ev.IntentID, intentSummary(ts, ev.IntentID), workerOutput(ts, ev.IntentID)))
 			if fids := factIDsYielded(ts, ev.IntentID); fids != "" {
-				b.WriteString(fmt.Sprintf("；本意图新产生的事实 id：%s ", fids))
+				b.WriteString(fmt.Sprintf("；本意圖新產生的事實 id：%s ", fids))
 			}
 		}
 	}
-	b.WriteString("\n（完整细节可 node_detail / get_worker_output / list_findings 再查。）")
+	b.WriteString("\n（完整細節可 node_detail / get_worker_output / list_findings 再查。）")
 	return b.String()
 }
 
@@ -249,7 +249,7 @@ func intentSummary(ts *db.ExplorationStore, id int64) string {
 func workerOutput(ts *db.ExplorationStore, id int64) string {
 	acts, _, err := ts.ActivityList(&id, 0, 1000)
 	if err != nil {
-		return "(取输出失败)"
+		return "(取輸出失敗)"
 	}
 	var pick *db.Activity
 	for i := range acts {
@@ -260,7 +260,7 @@ func workerOutput(ts *db.ExplorationStore, id int64) string {
 		}
 	}
 	if pick == nil {
-		return "(该 work 尚无输出记录)"
+		return "(該 work 尚無輸出記錄)"
 	}
 	out, _ := ts.ActivityDetail(pick.ID)
 	if out == "" {
@@ -276,7 +276,7 @@ func truncOutput(s string, n int) string {
 	if len(r) <= n {
 		return s
 	}
-	return string(r[:n]) + " …（已截断，完整见 get_worker_output）"
+	return string(r[:n]) + " …（已截斷，完整見 get_worker_output）"
 }
 
 // renderGraphOverview folds the pre-computed graph_overview snapshot into the
@@ -289,55 +289,55 @@ func renderGraphOverview(data map[string]any) string {
 	if err != nil {
 		return "" // fall back to the model calling graph_overview itself
 	}
-	return "\n\n【本轮态势（graph_overview 预取，等同你调用该工具的返回；需要细节再按需调 node_detail/list_facts 等）】：\n" + string(b)
+	return "\n\n【本輪態勢（graph_overview 預取，等同你呼叫該工具的返回；需要細節再按需調 node_detail/list_facts 等）】：\n" + string(b)
 }
 
 // plannerDefaultTmpl is the built-in EDITABLE body (段 [A]) of the planner prompt,
-// seeded into agent_prompts. Goal is a {{.Goal}} template var; the 中间产物输出规约
+// seeded into agent_prompts. Goal is a {{.Goal}} template var; the 中間產物輸出規約
 // tail is code-owned (artifactSpec) and appended by plannerSystem after rendering.
-const plannerDefaultTmpl = `你是一个网络安全平台授权渗透测试系统的"规划者"，被频繁唤醒（图一变就唤醒）。职责：读态势 → 判目标 → **只在确有未被覆盖的新方向时**补充探索意图。你是规划者、不是执行者：本轮所有产物只能是【生成/说清意图】或【判定目标】，绝不在 plan 里把活干了。
+const plannerDefaultTmpl = `你是一個網路安全平臺授權滲透測試系統的"規劃者"，被頻繁喚醒（圖一變就喚醒）。職責：讀態勢 → 判目標 → **只在確有未被覆蓋的新方向時**補充探索意圖。你是規劃者、不是執行者：本輪所有產物只能是【生成/說清意圖】或【判定目標】，絕不在 plan 裡把活幹了。
 
-任务目标：{{.Goal}}
+任務目標：{{.Goal}}
 
-**本轮该产出几个意图（先想清楚这条）**：
-- **硬底线（最高优先）**：只要【目标未达成】且【当前没有任何 open 或 running 意图】（frontier_open=0 且 running_intents 为空），本轮就【必须】产出至少一个向目标推进的意图——没有在跑的 work 可等、也没有在排队的方向时，产出 0 意图=任务停摆；哪怕已知方向都只在 recent_done 里，也要据下面 done/exhausted/blocked 的判断另开一条或续派一条。
-- 硬底线之外，**产出 0 个意图是正常结果，但要有正当理由**（不是"少派更稳"的默认）：①**已覆盖**——你想到的方向都已被仍在 open/running 的意图处理（换措辞重复生成已存在的意图是严重错误）；②**等待依赖**——下一步依赖当前在跑 work 的产出、而它还没出来（此时硬派会让下游拿不到前置而空转，应等下次唤醒图更新后再派）。
-- 反过来：确有【未覆盖、且不依赖在跑 work】的新方向，或目标未达成且范围内仍有未测面，就该派——别把 0 意图当偷懒的默认。
+**本輪該產出幾個意圖（先想清楚這條）**：
+- **硬底線（最高優先）**：只要【目標未達成】且【當前沒有任何 open 或 running 意圖】（frontier_open=0 且 running_intents 為空），本輪就【必須】產出至少一個向目標推進的意圖——沒有在跑的 work 可等、也沒有在排隊的方向時，產出 0 意圖=任務停擺；哪怕已知方向都只在 recent_done 裡，也要據下面 done/exhausted/blocked 的判斷另開一條或續派一條。
+- 硬底線之外，**產出 0 個意圖是正常結果，但要有正當理由**（不是"少派更穩"的預設）：①**已覆蓋**——你想到的方向都已被仍在 open/running 的意圖處理（換措辭重複生成已存在的意圖是嚴重錯誤）；②**等待依賴**——下一步依賴當前在跑 work 的產出、而它還沒出來（此時硬派會讓下游拿不到前置而空轉，應等下次喚醒圖更新後再派）。
+- 反過來：確有【未覆蓋、且不依賴在跑 work】的新方向，或目標未達成且範圍內仍有未測面，就該派——別把 0 意圖當偷懶的預設。
 
-**每次唤醒的决策流程**：
+**每次喚醒的決策流程**：
 
-1. **完整态势已附在本提示下方**（就是 graph_overview 的返回，无需再调它）：task（原始标题+目标/根节点）、资产计数、goals+状态、open/running/recent_done 意图、sites_without_endpoints（无端点的站点，提示可能待探的方向）、facts（探索事实数，与漏洞是两类）、recent_facts（{id,summary,confidence?}）。
-   - **范围**：探索节点（goals/意图/facts/findings）只含本任务；**资产图全局共享**（多任务同一份，资产计数是全局在范围内的、非本任务独有）——出现非本任务相关的资产时忽略。
-   - **血缘**：每个意图带 parents（上游：派生自哪些事实/意图）和 yields（下游：产生了哪些事实/发现），recent_facts 每条带 from_intent；据此理解"哪些事实来自哪个方向、能否综合出新方向"。
-   - **否定/存疑观察**（recent_facts 里"端口关闭/不可注入"等）是 worker 的观察、不是定论：采信前先 node_detail(id) 看 evidence——evidence 扎实、confidence=observed 且手段已穷尽的才视为该方向暂时封住；evidence 缺失、只是"看起来像/只探一次"、或 confidence=inferred 的，按【尚未探明】处理，若在范围内且无其它意图覆盖，默认派一条复核意图去证实或推翻（**同一否定方向至多复核一次**；复核后仍为否定、且证据合理，就尊重该结论、不再派）。
-   - **要更深细节才按需调**：list_facts（分页，最新在前，默认 20，可 q 过滤、before 翻页，带 total/has_more）、list_findings（全部漏洞）、node_detail(id)（完整证据/详情；列表/recent_facts 只给摘要）、list_assets（pull：q 搜索、type/company_id/task_id 过滤、分页，或 id/ids 直取）、asset_neighbors。资产全局共享，别默认拉全量。
+1. **完整態勢已附在本提示下方**（就是 graph_overview 的返回，無需再調它）：task（原始標題+目標/根節點）、資產計數、goals+狀態、open/running/recent_done 意圖、sites_without_endpoints（無端點的站點，提示可能待探的方向）、facts（探索事實數，與漏洞是兩類）、recent_facts（{id,summary,confidence?}）。
+   - **範圍**：探索節點（goals/意圖/facts/findings）只含本任務；**資產圖全域共享**（多工同一份，資產計數是全域在範圍內的、非本任務獨有）——出現非本任務相關的資產時忽略。
+   - **血緣**：每個意圖帶 parents（上游：派生自哪些事實/意圖）和 yields（下游：產生了哪些事實/發現），recent_facts 每條帶 from_intent；據此理解"哪些事實來自哪個方向、能否綜合出新方向"。
+   - **否定/存疑觀察**（recent_facts 裡"埠關閉/不可注入"等）是 worker 的觀察、不是定論：採信前先 node_detail(id) 看 evidence——evidence 紮實、confidence=observed 且手段已窮盡的才視為該方向暫時封住；evidence 缺失、只是"看起來像/只探一次"、或 confidence=inferred 的，按【尚未探明】處理，若在範圍內且無其它意圖覆蓋，預設派一條複核意圖去證實或推翻（**同一否定方向至多複核一次**；複核後仍為否定、且證據合理，就尊重該結論、不再派）。
+   - **要更深細節才按需調**：list_facts（分頁，最新在前，預設 20，可 q 過濾、before 翻頁，帶 total/has_more）、list_findings（全部漏洞）、node_detail(id)（完整證據/詳情；列表/recent_facts 只給摘要）、list_assets（pull：q 搜尋、type/company_id/task_id 過濾、分頁，或 id/ids 直取）、asset_neighbors。資產全域共享，別預設拉全量。
 
-2. **判目标（核心职责）**：goals 字段已含目标与状态；对已被某发现/事实证明的未达成目标，调 prove_goal(goal_id, evidence_id, reason) 标 met。**当你标记的恰是最后一个未完成目标时，系统自动判定整个任务完成**——收官只由逐个 prove_goal 驱动，没有别的"一键完成"手段。
-   - ⚠️ **量化验收核对（严禁提前盖章）**：目标含可量化条件（覆盖度达 X%、拿 N 个 flag、获得某权限）时，prove_goal 前【必须】核对上方 graph_overview 的实测值（coverage.pct、findings_total 计数等）：未达标就【禁止】prove_goal，改派意图补差；不得以"大体达成/核心已拿下"为由提前标 met。例：要求覆盖度 100% 而实测 coverage.pct=40% → 未达成，继续派补测意图。
+2. **判目標（核心職責）**：goals 欄位已含目標與狀態；對已被某發現/事實證明的未達成目標，調 prove_goal(goal_id, evidence_id, reason) 標 met。**當你標記的恰是最後一個未完成目標時，系統自動判定整個任務完成**——收官只由逐個 prove_goal 驅動，沒有別的"一鍵完成"手段。
+   - ⚠️ **量化驗收核對（嚴禁提前蓋章）**：目標含可量化條件（覆蓋度達 X%、拿 N 個 flag、獲得某權限）時，prove_goal 前【必須】核對上方 graph_overview 的實測值（coverage.pct、findings_total 計數等）：未達標就【禁止】prove_goal，改派意圖補差；不得以"大體達成/核心已拿下"為由提前標 met。例：要求覆蓋度 100% 而實測 coverage.pct=40% → 未達成，繼續派補測意圖。
 
-3. **（可选，仅开局、极轻量）探测理解**：仅当图里几乎还没有 fact（recent_facts 基本为空、任务刚开始）、仅凭态势无法把初始意图说具体时，才用 Bash 等对目标做极少量、只读的探测（如 1–2 次 curl 看首页/指纹）。**唯一合法产物是一句更精准的意图描述**——绝不是漏洞的发现/验证/利用，也不是端点/目录/参数的枚举结果（那些是 worker 的活，写成意图派下去）。三条硬边界：
-   - 图里已有 worker 产出的 fact（facts>0 / recent_facts 非空）→【禁止】再自己探测，一切判断基于已有 fact，本轮产物只能是"派新意图"或"结束"；想深挖某线索 → 派意图让 worker 去查，不是自己 curl。
-   - 即使开局也最多探 ≤3 次就收手，只为把初始意图说清；一旦发现自己在"深入查证"而非"快速定方向"（逐个枚举端点/目录、逐个试 id、解码链、反复探同一接口、任何注入/越权/漏洞的测试验证——全是 worker 的重活），立刻停手写成意图。
-   - 能从现有事实/态势判断的，根本不必探测。
+3. **（可選，僅開局、極輕量）探測理解**：僅當圖裡幾乎還沒有 fact（recent_facts 基本為空、任務剛開始）、僅憑態勢無法把初始意圖說具體時，才用 Bash 等對目標做極少量、只讀的探測（如 1–2 次 curl 看首頁/指紋）。**唯一合法產物是一句更精準的意圖描述**——絕不是漏洞的發現/驗證/利用，也不是端點/目錄/引數的列舉結果（那些是 worker 的活，寫成意圖派下去）。三條硬邊界：
+   - 圖裡已有 worker 產出的 fact（facts>0 / recent_facts 非空）→【禁止】再自己探測，一切判斷基於已有 fact，本輪產物只能是"派新意圖"或"結束"；想深挖某線索 → 派意圖讓 worker 去查，不是自己 curl。
+   - 即使開局也最多探 ≤3 次就收手，只為把初始意圖說清；一旦發現自己在"深入查證"而非"快速定方向"（逐個列舉端點/目錄、逐個試 id、解碼鏈、反覆探同一介面、任何注入/越權/漏洞的測試驗證——全是 worker 的重活），立刻停手寫成意圖。
+   - 能從現有事實/態勢判斷的，根本不必探測。
 
-4. **决定补哪些新方向**：**这里的"克制"只指【不重复已存在的意图】，不是"能少派就少派"**——目标未达成时，默认追问是"为逼近目标，还有哪些更深、更狠、尚未覆盖的打法"，而不是"是否可以收尾"。意图是【开放的探索方向】（不是固定类型/菜单），结合已知事实、资产、目标自判方向，逐一与 open + running + recent_done 比对：
-   - 已有 open/running 覆盖 → 不再生成（正在处理）。
-   - 在 recent_done 里出现过 → **先看该意图的 state（每条都带）分辨怎么停的，再决定**：
-     · **done（正常跑完）**：已覆盖 → 不原样重派；是否死路看它 yields 出的 fact 结论、而非 state；仅出现【材料性新机理】（新事实/资产/参数/明显不同的打法）才重派，且 summary 写清与上次的不同；换措辞、"再试一次说不定行"不算，禁止重试。
-     · **exhausted（预算耗尽、探到一半被掐断，只写回部分）/ blocked（模型或网络失败、基本没探成）**：都是中途没善终、信息不全——先用 get_worker_trace / get_worker_output 看它实际做到哪、卡在哪，再从下列里选：接近突破被预算掐 → 派"接上次进度继续"；纯外部故障没跑成（blocked 常是）→ 直接重派同方向；每次卡同一处 → 换打法/方向。依据永远是 trace 里的真实进度，不是 state 本身。
-   - 完全无任何意图覆盖的全新方向 → 生成。
-   - 所有已知方向都被仍在 open/running 的意图覆盖 → 不生成、直接结束（有在跑/在排队的 work，等它们推进）；但若只剩 recent_done 覆盖、已无 open/running 而目标未达成 → 按顶部硬底线必须另开或续派。
-   - **深度优先于覆盖度**：coverage 是下限/验收项、不是探索目标本身；发现高价值入口（可能通向 RCE/提权/数据外泄）后，优先派意图把那条路【往深打穿】，而不是为拉平覆盖度去铺广、逐个资产浅测。
-   - **保持路线多样、别过早收敛**：目标未达成时，若现有意图都挤在同一条路线/入口，而存在【本质不同】的未覆盖方向（另一入口面/另一类资产/另一条利用链），优先补那条分歧方向，而不是在同一线上加同义意图（看实质差异，不看措辞）；若该分歧方向已被现有意图覆盖，仍不生成。理想是 2–3 条机理不同的路线并存（如"从上传链打"与"从认证绕过打"），某条交出【目标逼近】的证据后才把资源集中过去。**但多样性永远服从顶部【操作约束】**：被约束排除的入口面/端口/主机/操作，即使本质不同也绝不生成意图。
+4. **決定補哪些新方向**：**這裡的"剋制"只指【不重複已存在的意圖】，不是"能少派就少派"**——目標未達成時，預設追問是"為逼近目標，還有哪些更深、更狠、尚未覆蓋的打法"，而不是"是否可以收尾"。意圖是【開放的探索方向】（不是固定型別/選單），結合已知事實、資產、目標自判方向，逐一與 open + running + recent_done 比對：
+   - 已有 open/running 覆蓋 → 不再生成（正在處理）。
+   - 在 recent_done 裡出現過 → **先看該意圖的 state（每條都帶）分辨怎麼停的，再決定**：
+     · **done（正常跑完）**：已覆蓋 → 不原樣重派；是否死路看它 yields 出的 fact 結論、而非 state；僅出現【材料性新機理】（新事實/資產/引數/明顯不同的打法）才重派，且 summary 寫清與上次的不同；換措辭、"再試一次說不定行"不算，禁止重試。
+     · **exhausted（預算耗盡、探到一半被掐斷，只寫回部分）/ blocked（模型或網路失敗、基本沒探成）**：都是中途沒善終、資訊不全——先用 get_worker_trace / get_worker_output 看它實際做到哪、卡在哪，再從下列裡選：接近突破被預算掐 → 派"接上次進度繼續"；純外部故障沒跑成（blocked 常是）→ 直接重派同方向；每次卡同一處 → 換打法/方向。依據永遠是 trace 裡的真實進度，不是 state 本身。
+   - 完全無任何意圖覆蓋的全新方向 → 生成。
+   - 所有已知方向都被仍在 open/running 的意圖覆蓋 → 不生成、直接結束（有在跑/在排隊的 work，等它們推進）；但若只剩 recent_done 覆蓋、已無 open/running 而目標未達成 → 按頂部硬底線必須另開或續派。
+   - **深度優先於覆蓋度**：coverage 是下限/驗收項、不是探索目標本身；發現高價值入口（可能通向 RCE/提權/資料外洩）後，優先派意圖把那條路【往深打穿】，而不是為拉平覆蓋度去鋪廣、逐個資產淺測。
+   - **保持路線多樣、別過早收斂**：目標未達成時，若現有意圖都擠在同一條路線/入口，而存在【本質不同】的未覆蓋方向（另一入口面/另一類資產/另一條利用鏈），優先補那條分歧方向，而不是在同一線上加同義意圖（看實質差異，不看措辭）；若該分歧方向已被現有意圖覆蓋，仍不生成。理想是 2–3 條機理不同的路線並存（如"從上傳鏈打"與"從認證繞過打"），某條交出【目標逼近】的證據後才把資源集中過去。**但多樣性永遠服從頂部【操作約束】**：被約束排除的入口面/埠/主機/操作，即使本質不同也絕不生成意圖。
 
-   **串行利用链：分步派，别拆成并行。** 强依赖串行链（①→②→③，后一步依赖前一步的实际产出）：不要一次性并行下发（下游拿不到还不存在的前置只会重复/空转）；用 TodoWrite 把整条链记成待办（每步一条），本轮只派"前置已满足"的那步（通常第一步），待它产出 fact 后下次唤醒（提示会带上待办清单）再派下一步并把已满足的标 completed。"同一件事"别拆两条（"确认触发点"和"触发触发点"是同一步）；只有【平行、互不依赖】的维度（如枚举多个不相关端点）才用多意图并行。
+   **序列利用鏈：分步派，別拆成並行。** 強依賴序列鏈（①→②→③，後一步依賴前一步的實際產出）：不要一次性並行下發（下游拿不到還不存在的前置只會重複/空轉）；用 TodoWrite 把整條鏈記成待辦（每步一條），本輪只派"前置已滿足"的那步（通常第一步），待它產出 fact 後下次喚醒（提示會帶上待辦清單）再派下一步並把已滿足的標 completed。"同一件事"別拆兩條（"確認觸發點"和"觸發觸發點"是同一步）；只有【平行、互不依賴】的維度（如列舉多個不相關端點）才用多意圖並行。
 
-5. **提交**：用【一次】add_intent 批量提交筛出的新方向（intents 数组，最多 4 个最高价值的，不要逐条多次调）：
-   - **summary**：一句话自然语言描述该方向（测试目标完整地址 + 做什么 + 为什么），不套固定分类；去重主要靠它与已有意图比对。
-   - **asset_ids**：本方向要测试/攻击的目标资产 id（尽量传，0/1/多个，来自 list_assets）——只要方向围绕具体资产（站点/接口/参数/主机）就务必传，用于覆盖去重、连入资产链路，跨多资产就都传；纯全局侦察无具体资产才留空。
-   - **parent_ids**：本方向由哪些上游节点综合得出（可选，0/1/多个）——多个事实结合产生一个意图就都传，派生自某上游意图/发现也传其 id，顶层全新方向留空。
+5. **提交**：用【一次】add_intent 批次提交篩出的新方向（intents 陣列，最多 4 個最高價值的，不要逐條多次調）：
+   - **summary**：一句話自然語言描述該方向（測試目標完整地址 + 做什麼 + 為什麼），不套固定分類；去重主要靠它與已有意圖比對。
+   - **asset_ids**：本方向要測試/攻擊的目標資產 id（儘量傳，0/1/多個，來自 list_assets）——只要方向圍繞具體資產（站點/介面/引數/主機）就務必傳，用於覆蓋去重、連入資產鏈路，跨多資產就都傳；純全域偵察無具體資產才留空。
+   - **parent_ids**：本方向由哪些上游節點綜合得出（可選，0/1/多個）——多個事實結合產生一個意圖就都傳，派生自某上游意圖/發現也傳其 id，頂層全新方向留空。
 
-不重复、不硬凑；但目标未达成、又有未覆盖且更深的打法时，该派就派。简洁、聚焦、高效。`
+不重複、不硬湊；但目標未達成、又有未覆蓋且更深的打法時，該派就派。簡潔、聚焦、高效。`
 
 func plannerSystem(goal, dataDir, workDir string) string {
 	body := renderSystem("planner", plannerDefaultTmpl, PlannerVars{Goal: goal, DataDir: dataDir, Now: nowStr()})
@@ -370,33 +370,33 @@ func (p *Planner) Plan(ctx context.Context, taskID int64, as *db.AssetStore, ts 
 	if origin, _ := ts.OriginFactID(); origin > 0 {
 		tsx.SetOwnerNode(origin) // planner-side anchors default to the task root (origin fact)
 	}
-	// 领域工具 + 基础默认工具集（Read/Write/Edit/MultiEdit/LS/Glob/Grep/Bash）
-	// 资产覆盖度功能关闭时剔除 add_task_scope/list_untested_assets（不入 prompt）。
+	// 領域工具 + 基礎預設工具集（Read/Write/Edit/MultiEdit/LS/Glob/Grep/Bash）
+	// 資產覆蓋度功能關閉時剔除 add_task_scope/list_untested_assets（不入 prompt）。
 	base := append(tsx.DropCoverageTools(tsx.PlannerTools()), actool.DefaultTools()...)
 	ctx = WithRunInfo(ctx, RunInfo{TaskID: taskID, ExplorationID: explorationID(ts)})
 	tools, def, cleanup := AugmentTools(ctx, "planner", base)
 	defer cleanup()
-	// 关键态势（刚完成的意图 + 预取的完整图）改放【本轮 user 输入】(见下方 input)，system
-	// 只留静态规划正文。move-out 让 system 每轮稳定、更利于缓存；代价是若单轮变长，态势可能
-	// 被 compaction 压缩（planner 单轮通常短，风险低）。situational 会拼进下方 input。
+	// 關鍵態勢（剛完成的意圖 + 預取的完整圖）改放【本輪 user 輸入】(見下方 input)，system
+	// 只留靜態規劃正文。move-out 讓 system 每輪穩定、更利於快取；代價是若單輪變長，態勢可能
+	// 被 compaction 壓縮（planner 單輪通常短，風險低）。situational 會拼進下方 input。
 	situational := renderTriggers(ts, triggers) + renderGraphOverview(tsx.graphOverviewData())
-	// 任务级 deadline / 终局模式(经 ctx 注入,见 taskclock.go)。终局那一轮把任务超时
-	// planner 收尾词作为【本轮操作指令】拼进本轮 user 输入(随 situational),让它只做最后
-	// 目标判定、不产新意图。
+	// 任務級 deadline / 終局模式(經 ctx 注入,見 taskclock.go)。終局那一輪把任務超時
+	// planner 收尾詞作為【本輪操作指令】拼進本輪 user 輸入(隨 situational),讓它只做最後
+	// 目標判定、不產新意圖。
 	tc := taskClockFrom(ctx)
 	if tc.Final {
-		situational += "\n\n【任务终局收尾（本轮特殊指令，覆盖上面的常规规划流程）】：" + resolveTaskTimeoutWrapup("planner")
+		situational += "\n\n【任務終局收尾（本輪特殊指令，覆蓋上面的常規規劃流程）】：" + resolveTaskTimeoutWrapup("planner")
 	}
-	// 本任务的工作目录 <workDir>/tasks/<taskID>，先建好。
+	// 本任務的工作目錄 <workDir>/tasks/<taskID>，先建好。
 	taskDir := ensureRunDir(p.workDir, taskID, 0)
 	ctx = intercept.WithReviewContext(ctx, taskDir, intercept.ReviewBackground{})
 	sysBody := plannerSystem(goal, p.workDir, taskDir)
 	if p.wantConstraints() {
-		sysBody += constraintBlock(ts) // 操作约束(若有)注入系统提示,框定探索边界
+		sysBody += constraintBlock(ts) // 操作約束(若有)注入系統提示,框定探索邊界
 	}
 	system, boundary := deferredSystem(sysBody, def)
-	// planner 无自身墙钟预算;有 deadline 时把 MaxDuration 夹逼到剩余,让在跑的规划轮在
-	// 任务到点时进收尾(因超时→任务超时词,因步数→per-run 词)。
+	// planner 無自身牆鍾預算;有 deadline 時把 MaxDuration 夾逼到剩餘,讓在跑的規劃輪在
+	// 任務到點時進收尾(因超時→任務超時詞,因步數→per-run 詞)。
 	maxDur, clamped := clampMaxDuration(tc.DeadlineUnix, 0)
 	settle := wrapupSettlement("planner", nil)
 	if tc.DeadlineUnix > 0 {
@@ -410,11 +410,11 @@ func (p *Planner) Plan(ctx context.Context, taskID int64, as *db.AssetStore, ts 
 		DeferredTools:   def.Deferred,
 		UnlockSet:       def.Unlock,
 		PermissionMode:  permission.ModeBypass,
-		EnableWebFetch:  true, // 走记录代理留痕；载入代理 CA 验证 MITM 重签的 HTTPS 证书
+		EnableWebFetch:  true, // 走記錄代理留痕；載入代理 CA 驗證 MITM 重籤的 HTTPS 證書
 		WebFetchProxy:   p.proxyAddr,
 		WebFetchCACert:  p.proxyCACert,
-		// 联网搜索(可选)。ddgs 无需 key；brave-free 需 BraveKey；tavily 需 TavilyKey。
-		// WebSearchProxy 是独立出口代理(http/https/socks5)，与记录流量的 MITM 代理无关；空则直连。
+		// 聯網搜尋(可選)。ddgs 無需 key；brave-free 需 BraveKey；tavily 需 TavilyKey。
+		// WebSearchProxy 是獨立出口代理(http/https/socks5)，與記錄流量的 MITM 代理無關；空則直連。
 		EnableWebSearch:       p.webSearch.Enabled,
 		WebSearchBackend:      p.webSearch.Backend,
 		BraveSearchAPIKey:     p.webSearch.BraveKey,
@@ -423,45 +423,45 @@ func (p *Planner) Plan(ctx context.Context, taskID int64, as *db.AssetStore, ts 
 		DeepSeekSearchAPIKey:  p.webSearch.DeepSeekAPIKey,
 		DeepSeekSearchModel:   p.webSearch.DeepSeekModel,
 		WebSearchProxy:        p.webSearch.Proxy,
-		BashEnv:               proxyEnv(p.proxyAddr, p.proxyCACert), // Bash 子命令默认走代理+信任 CA
-		WorkingDir:            taskDir,                              // 本任务工作目录 <workDir>/tasks/<taskID>
+		BashEnv:               proxyEnv(p.proxyAddr, p.proxyCACert), // Bash 子命令預設走代理+信任 CA
+		WorkingDir:            taskDir,                              // 本任務工作目錄 <workDir>/tasks/<taskID>
 		ToolOutputDir:         cmdOutDir(taskDir),
 		MaxTurns:              p.maxTurns, // 0 = unlimited (configurable in agent management)
-		MaxDuration:           maxDur,     // 0=不限;有 deadline 时=距 deadline 剩余
+		MaxDuration:           maxDur,     // 0=不限;有 deadline 時=距 deadline 剩餘
 		Compaction:            compactionConfig(p.compactionWindow()),
-		// 跨唤醒共享的规划待办：让串行链在多轮之间保留（session 是新的，store 不是）。
+		// 跨喚醒共享的規劃待辦：讓序列鏈在多輪之間保留（session 是新的，store 不是）。
 		Todos: p.todoFor(ts.ID()),
-		// 命中【本轮】步数预算→ SDK 跑收尾:把本轮已想清楚的结论落地(该派的 add_intent、
-		// 能证的 prove_goal、串行链记 TodoWrite),而非停止规划——planner 之后仍会被反复唤醒。
-		// clamped(被任务 deadline 夹逼)时改用 PromptByReason(见 wrapupSettlementForTask)。
+		// 命中【本輪】步數預算→ SDK 跑收尾:把本輪已想清楚的結論落地(該派的 add_intent、
+		// 能證的 prove_goal、序列鏈記 TodoWrite),而非停止規劃——planner 之後仍會被反覆喚醒。
+		// clamped(被任務 deadline 夾逼)時改用 PromptByReason(見 wrapupSettlementForTask)。
 		Settlement:   settle,
-		NonStreaming: p.nonStreaming(), // 该 profile 选非流式时走 Provider.Complete
-		MaxTokens:    p.maxTokens(),    // 0 = 不发上限,由服务端默认值决定
+		NonStreaming: p.nonStreaming(), // 該 profile 選非流式時走 Provider.Complete
+		MaxTokens:    p.maxTokens(),    // 0 = 不發上限,由服務端預設值決定
 	}
 	if p.tx != nil { // persist raw LLM conversation; one accumulating file per task's planner
 		opts.Transcript = p.tx
 		opts.SessionID = fmt.Sprintf("exp%d-planner", ts.ID())
 	}
-	// 实验功能:开启后由 noa 接管上下文压缩(归档集中在 <workDir>/noa/<SessionID> 下,持久)。
+	// 實驗功能:開啟後由 noa 接管上下文壓縮(歸檔集中在 <workDir>/noa/<SessionID> 下,持久)。
 	noaSession := fmt.Sprintf("exp%d-planner", ts.ID())
 	enableNoa(&opts, p.noaEnabledFn, p.workDir, noaSession, noaWarn(noaSession))
-	// 态势（刚完成的意图 + 完整图）现在拼进本轮 user 输入（见下方 input）。user 里还有
-	// 指令 + 跨唤醒待办（todo 是模型自己的规划便签，可再生，放 user 即可）。
-	// 开场白按「本轮有无具体变动」分两种：有变动 → 指向下方【实际变动】块；无变动
-	// (心跳定时巡检 / hint / 恢复等) → 别谎称"图发生了变化",转而提示顺带复查在跑意图。
-	lead := "刚有具体变动（见下面的【本次触发本轮的实际变动】），据此规划下一步："
+	// 態勢（剛完成的意圖 + 完整圖）現在拼進本輪 user 輸入（見下方 input）。user 裡還有
+	// 指令 + 跨喚醒待辦（todo 是模型自己的規劃便籤，可再生，放 user 即可）。
+	// 開場白按「本輪有無具體變動」分兩種：有變動 → 指向下方【實際變動】塊；無變動
+	// (心跳定時巡檢 / hint / 恢復等) → 別謊稱"圖發生了變化",轉而提示順帶複查在跑意圖。
+	lead := "剛有具體變動（見下面的【本次觸發本輪的實際變動】），據此規劃下一步："
 	if len(triggers) == 0 {
-		lead = "本轮是**定时巡检（心跳到点）/无具体变动信号**的唤醒——图不一定有新变动。顺带复查在跑意图：长时间无进展或跑偏的用 steer_work 纠偏、方向整个错的用 kill_work 止损；再判定目标、决定是否补方向："
-		// 心跳/无变动唤醒时,若全图已无任何 open 或 running 意图 → 探索已停摆(没 worker 在跑、
-		// 也没排队方向)。明确告知 planner 并强制其本轮补出新方向,别只复查在跑意图后空转一轮。
+		lead = "本輪是**定時巡檢（心跳到點）/無具體變動訊號**的喚醒——圖不一定有新變動。順帶複查在跑意圖：長時間無進展或跑偏的用 steer_work 糾偏、方向整個錯的用 kill_work 止損；再判定目標、決定是否補方向："
+		// 心跳/無變動喚醒時,若全圖已無任何 open 或 running 意圖 → 探索已停擺(沒 worker 在跑、
+		// 也沒排隊方向)。明確告知 planner 並強制其本輪補出新方向,別隻複查在跑意圖後空轉一輪。
 		if active, err := ts.HasActiveIntent(); err == nil && !active {
-			lead = "本轮是**定时巡检（心跳到点）**的唤醒,且当前**已没有任何 open 或 running 的意图**——没有 worker 在跑、也没有排队中的方向,探索已停摆。你**必须**在本轮产出一个或多个向目标推进、且与图中既有意图**互不重复**的新意图(不得产出 0 意图);先据下面的态势判定目标是否已达成,未达成则立即补方向："
+			lead = "本輪是**定時巡檢（心跳到點）**的喚醒,且當前**已沒有任何 open 或 running 的意圖**——沒有 worker 在跑、也沒有排隊中的方向,探索已停擺。你**必須**在本輪產出一個或多個向目標推進、且與圖中既有意圖**互不重複**的新意圖(不得產出 0 意圖);先據下面的態勢判定目標是否已達成,未達成則立即補方向："
 		}
 	}
-	input := lead + situational + "\n\n据上面的态势，判定目标。目标已【真正达成】（已拿到目标成果/已确认目标漏洞）时用 prove_goal 逐个标记。**硬底线：只要目标尚未达成、且当前没有任何 open 或 running 意图（frontier_open=0 且 running_intents 为空），本轮就必须产出至少一个向目标推进的意图——此时没有在跑的 work 可等、也没有在排队的方向，产出 0 意图=任务停摆。仅当已有 open/running 意图在推进、或目标已达成时，本轮才可以不产出新意图。**" +
+	input := lead + situational + "\n\n據上面的態勢，判定目標。目標已【真正達成】（已拿到目標成果/已確認目標漏洞）時用 prove_goal 逐個標記。**硬底線：只要目標尚未達成、且當前沒有任何 open 或 running 意圖（frontier_open=0 且 running_intents 為空），本輪就必須產出至少一個向目標推進的意圖——此時沒有在跑的 work 可等、也沒有在排隊的方向，產出 0 意圖=任務停擺。僅當已有 open/running 意圖在推進、或目標已達成時，本輪才可以不產出新意圖。**" +
 		renderPlannerTodos(opts.Todos.List())
-	// MaxDuration 现在会在墙钟到点打断在跑工具并就地进收尾(在活 ctx 上),单轮卡死不再
-	// 绕过收尾,无需外部硬 ctx 兜底。ctx 只承载 pause / kill / shutdown。
+	// MaxDuration 現在會在牆鍾到點打斷在跑工具並就地進收尾(在活 ctx 上),單輪卡死不再
+	// 繞過收尾,無需外部硬 ctx 兜底。ctx 只承載 pause / kill / shutdown。
 	_, _, err = captureRun(ctx, opts, input,
 		func(r db.Activity) {
 			if emit != nil {

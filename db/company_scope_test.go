@@ -56,15 +56,15 @@ func TestParseAutoScopeLine(t *testing.T) {
 		{name: "ipv4", input: "203.0.113.10", kind: "ip", normalized: "203.0.113.10/32"},
 		{name: "ipv6", input: "2001:db8::10", kind: "ip", normalized: "2001:db8::10/128"},
 		{name: "cidr", input: "198.51.100.0/24", kind: "cidr", normalized: "198.51.100.0/24"},
-		{name: "icp latin", input: "京 ICP备 123号", kind: "icp", normalized: "京icp备123号"},
-		{name: "icp chinese", input: "沪网备案 9988", kind: "icp", normalized: "沪网备案9988"},
+		{name: "icp latin", input: "京 ICP備 123號", kind: "icp", normalized: "京icp備123號"},
+		{name: "icp chinese", input: "滬網備案 9988", kind: "icp", normalized: "滬網備案9988"},
 		{name: "icp domain", input: "icp.example.com", kind: "domain", normalized: "icp.example.com"},
 		{name: "icp url query", input: "https://example.com/path?icp=1", kind: "domain", normalized: "example.com"},
-		// 备案号不含点号：掺了域名/版本号的描述性文字归关键词，否则会存成一条
-		// 永远匹配不上的死 ICP 规则。
-		{name: "icp with domain text", input: "备案 www.example.com", kind: "keyword", normalized: "备案 www.example.com"},
+		// 備案號不含點號：摻了域名/版本號的描述性文字歸關鍵詞，否則會存成一條
+		// 永遠匹配不上的死 ICP 規則。
+		{name: "icp with domain text", input: "備案 www.example.com", kind: "keyword", normalized: "備案 www.example.com"},
 		{name: "icp with version text", input: "某公司 ICP v1.0", kind: "keyword", normalized: "某公司 icp v1.0"},
-		{name: "icp fullwidth dot", input: "备案 例．com", kind: "keyword", normalized: "备案 例．com"},
+		{name: "icp fullwidth dot", input: "備案 例．com", kind: "keyword", normalized: "備案 例．com"},
 		{name: "keyword", input: "  ACME   Security  ", kind: "keyword", normalized: "acme security"},
 		{name: "colon keyword", input: "ACME: Cloud: Security", kind: "keyword", normalized: "acme: cloud: security"},
 		{name: "empty", input: "  ", wantErr: true},
@@ -209,11 +209,11 @@ func TestExplicitCompanyAttributionSurvivesScopeRebuild(t *testing.T) {
 }
 
 func TestParseStructuredCompanyScope(t *testing.T) {
-	icp, err := ParseScopeInput(ScopeInput{Kind: "ICP", Value: " 京ICP 备 123号-1\t"})
+	icp, err := ParseScopeInput(ScopeInput{Kind: "ICP", Value: " 京ICP 備 123號-1\t"})
 	if err != nil {
 		t.Fatalf("parse ICP: %v", err)
 	}
-	if icp.Kind != "icp" || icp.Value != "京icp备123号-1" {
+	if icp.Kind != "icp" || icp.Value != "京icp備123號-1" {
 		t.Fatalf("unexpected normalized ICP: %+v", icp)
 	}
 	keyword, err := ParseScopeInput(ScopeInput{Kind: "keyword", Value: "  ACME   Security  "})
@@ -233,14 +233,14 @@ func TestCompanyICPAttribution(t *testing.T) {
 	if err != nil {
 		t.Skipf("postgres unavailable (%v) — skipping", err)
 	}
-	// 关连接必须走 t.Cleanup 且**注册在清理之前**：t.Cleanup 是后进先出，
-	// 先注册关闭 → 关闭最后执行，下面的数据清理才连得上库。
-	// 原先这里是 `defer d.Close()`：defer 在函数返回时先跑，t.Cleanup 在那之后
-	// 才执行，于是清理语句全落在**已关闭的连接**上、错误又被 `_, _ =` 丢弃，
-	// 资产与公司就永久残留在库里。残留本身不会立刻报错，但本用例用
-	// `MAX(companies.id)+1` 当假 TaskID 给资产打标（见下方 suffix），
-	// 一旦这个数字与别的用例的任务 id 撞上，那个用例按「恰好 N 个资产」的断言
-	// 就会莫名失败——排查成本极高。
+	// 關連線必須走 t.Cleanup 且**註冊在清理之前**：t.Cleanup 是後進先出，
+	// 先註冊關閉 → 關閉最後執行，下面的資料清理才連得上庫。
+	// 原先這裡是 `defer d.Close()`：defer 在函式返回時先跑，t.Cleanup 在那之後
+	// 才執行，於是清理語句全落在**已關閉的連線**上、錯誤又被 `_, _ =` 丟棄，
+	// 資產與公司就永久殘留在庫裡。殘留本身不會立刻報錯，但本用例用
+	// `MAX(companies.id)+1` 當假 TaskID 給資產打標（見下方 suffix），
+	// 一旦這個數字與別的用例的任務 id 撞上，那個用例按「恰好 N 個資產」的斷言
+	// 就會莫名失敗——排查成本極高。
 	t.Cleanup(func() { d.Close() })
 
 	var suffix int64
@@ -254,18 +254,18 @@ func TestCompanyICPAttribution(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		// 不吞错误：清理失败会污染后续用例，必须让它在本次运行里显形。
+		// 不吞錯誤：清理失敗會汙染後續用例，必須讓它在本次執行裡顯形。
 		if _, err := d.Exec(`DELETE FROM assets WHERE task_ids @> ARRAY[$1]::bigint[]`, suffix); err != nil {
-			t.Errorf("清理测试资产失败: %v", err)
+			t.Errorf("清理測試資產失敗: %v", err)
 		}
 		if _, err := d.Exec(`DELETE FROM companies WHERE id=$1`, companyID); err != nil {
-			t.Errorf("清理测试公司失败: %v", err)
+			t.Errorf("清理測試公司失敗: %v", err)
 		}
 	})
 
 	// A keyword can guide an Agent, but must never claim an asset by its name.
 	added, _, invalid, errs := cs.AddScopeInputs(companyID, []ScopeInput{
-		{Kind: "icp", Value: "京 ICP备 998877号"},
+		{Kind: "icp", Value: "京 ICP備 998877號"},
 		{Kind: "keyword", Value: "ICP Scope"},
 	}, "unit test")
 	if added != 2 || invalid != 0 || len(errs) != 0 {
@@ -273,7 +273,7 @@ func TestCompanyICPAttribution(t *testing.T) {
 	}
 
 	rootID, err := as.UpsertRootDomain(UpsertRootDomainReq{
-		Domain: fmt.Sprintf("icp-scope-%d.example", suffix), ICP: "京icp备998877号", TaskID: suffix,
+		Domain: fmt.Sprintf("icp-scope-%d.example", suffix), ICP: "京icp備998877號", TaskID: suffix,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -285,7 +285,7 @@ func TestCompanyICPAttribution(t *testing.T) {
 		t.Fatal(err)
 	}
 	icpAppID, err := as.UpsertApp(UpsertAppReq{
-		Name: fmt.Sprintf("ICP Matched App %d", suffix), ICP: " 京 ICP备 998877号 ", TaskID: suffix,
+		Name: fmt.Sprintf("ICP Matched App %d", suffix), ICP: " 京 ICP備 998877號 ", TaskID: suffix,
 	})
 	if err != nil {
 		t.Fatal(err)

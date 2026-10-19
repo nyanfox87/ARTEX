@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "已存在的正式版本标签，例如 v0.3.15"
+        description: "已存在的正式版本標籤，例如 v0.3.15"
         required: true
         type: string
   push:
@@ -30,11 +30,11 @@ jobs:
           ARTEX_DOCKER_IMAGE: ${{ vars.ARTEX_DOCKER_IMAGE }}
         run: |
           if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "正式版本必须是 v主版本.次版本.修订号，例如 v0.3.15" >&2
+            echo "正式版本必須是 v主版本.次版本.修訂號，例如 v0.3.15" >&2
             exit 1
           fi
           if [[ ! "$ARTEX_DOCKER_IMAGE" =~ ^[a-z0-9][a-z0-9_-]*/[a-z0-9]+([._-][a-z0-9]+)*$ ]]; then
-            echo "请先配置 Actions 变量 ARTEX_DOCKER_IMAGE，格式为 Docker Hub 用户名/镜像名" >&2
+            echo "請先配置 Actions 變數 ARTEX_DOCKER_IMAGE，格式為 Docker Hub 使用者名稱/映像名" >&2
             exit 1
           fi
           echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
@@ -45,7 +45,7 @@ jobs:
         id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  # ① 前端静态导出（一次），产物给交叉编译各平台复用
+  # ① 前端靜態匯出（一次），產物給交叉編譯各平臺複用
   frontend:
     needs: prepare
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
           name: web-dist
           path: web/out
 
-  # ② 五平台交叉编译（内嵌前端）+ 打 zip
+  # ② 五平臺交叉編譯（內嵌前端）+ 打 zip
   binaries:
     needs: [prepare, frontend]
     runs-on: ubuntu-latest
@@ -98,8 +98,8 @@ jobs:
           ARTEX_BUILD_VERSION: ${{ needs.prepare.outputs.tag }}
           ARTEX_SKIP_FRONTEND: "1"
           ARTEX_SKIP_NPM_CI: "1"
-          # UPX 自解压 ELF 在部分 Linux 内核、虚拟化和安全策略下会崩溃。
-          # Release 使用 Go linker 裁剪和 zip 压缩，优先保证可移植性。
+          # UPX 自解壓 ELF 在部分 Linux 核心、虛擬化和安全策略下會崩潰。
+          # Release 使用 Go linker 裁剪和 zip 壓縮，優先保證可移植性。
           ARTEX_COMPRESS: "0"
           ARTEX_PACKAGE: "1"
           ARTEX_PACKAGE_DIR: dist
@@ -112,14 +112,14 @@ jobs:
         with:
           name: pkg-${{ matrix.goos }}-${{ matrix.goarch }}
           path: "dist/*.zip"
-      # Linux 生二进制单独上传，供 docker job 复用（免在镜像里重编前端+Go）
+      # Linux 生二進位制單獨上傳，供 docker job 複用（免在映像裡重編前端+Go）
       - if: matrix.goos == 'linux'
         uses: actions/upload-artifact@v4
         with:
           name: bin-linux-${{ matrix.goarch }}
           path: dist/artex-linux-${{ matrix.goarch }}/artex
 
-  # ③ 汇总所有 zip → 创建 GitHub Release
+  # ③ 彙總所有 zip → 建立 GitHub Release
   release:
     needs: [prepare, binaries, docker-publish]
     runs-on: ubuntu-latest
@@ -153,10 +153,10 @@ jobs:
             target=$(jq -r '.targetCommitish // empty' /tmp/artex-release.json)
             if [[ "$draft" != "true" ]]; then
               if [[ "$target" == "$RELEASE_COMMIT" ]]; then
-                echo "该版本已发布且已指向当前提交，拒绝重复发布" >&2
+                echo "該版本已釋出且已指向當前提交，拒絕重複釋出" >&2
                 exit 1
               fi
-              echo "标签已移动到新提交，删除旧 Release 后重新创建 $RELEASE_TAG"
+              echo "標籤已移動到新提交，刪除舊 Release 後重新建立 $RELEASE_TAG"
               gh release delete "$RELEASE_TAG" --yes
             fi
           elif ! grep -qi 'release not found\|HTTP 404' /tmp/artex-release.err; then
@@ -174,14 +174,14 @@ jobs:
             dist/SHA256SUMS
           generate_release_notes: true
           body: |
-            Docker Hub 镜像：`${{ vars.ARTEX_DOCKER_IMAGE }}:${{ needs.prepare.outputs.tag }}`，同时提供 `latest`。
-            支持 Linux AMD64 / ARM64，Docker 会自动选择宿主机架构。
-            程序包提供 Linux、macOS 的 AMD64 / ARM64 及 Windows AMD64，并附 SHA256SUMS。
-            部署和在线更新说明见本仓库 README。
+            Docker Hub 映像：`${{ vars.ARTEX_DOCKER_IMAGE }}:${{ needs.prepare.outputs.tag }}`，同時提供 `latest`。
+            支援 Linux AMD64 / ARM64，Docker 會自動選擇宿主機架構。
+            程式包提供 Linux、macOS 的 AMD64 / ARM64 及 Windows AMD64，並附 SHA256SUMS。
+            部署和線上更新說明見本儲存庫 README。
       - name: Publish complete release
         run: gh release edit "$RELEASE_TAG" --draft=false --latest
 
-  # ④ 在原生 AMD64 / ARM64 runner 上构建和测试，再推送架构镜像。
+  # ④ 在原生 AMD64 / ARM64 runner 上構建和測試，再推送架構映像。
   docker:
     needs: [prepare, binaries]
     strategy:
@@ -204,7 +204,7 @@ jobs:
           --health-cmd "pg_isready -U artex -d artex"
           --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
-      - uses: actions/checkout@v4 # 取 Dockerfile 与 skills/
+      - uses: actions/checkout@v4 # 取 Dockerfile 與 skills/
         with:
           ref: ${{ needs.prepare.outputs.commit }}
       - uses: actions/download-artifact@v4
@@ -252,7 +252,7 @@ jobs:
             org.opencontainers.image.licenses=AGPL-3.0
           cache-from: type=gha,scope=docker-${{ matrix.arch }}
 
-  # ⑤ 只有两种架构都通过启动验证，才发布正式版本和 latest 镜像。
+  # ⑤ 只有兩種架構都通過啟動驗證，才釋出正式版本和 latest 映像。
   docker-publish:
     needs: [prepare, docker]
     runs-on: ubuntu-24.04

@@ -92,7 +92,7 @@ export function TimeSelect({
   value,
   onValueChange,
   optional = false,
-  placeholder = "选择时间",
+  placeholder = "選擇時間",
   "aria-label": ariaLabel,
 }: {
   value?: string;
@@ -112,8 +112,8 @@ export function TimeSelect({
         value={selected.hour}
         items={hours}
         max={23}
-        placeholder="小时"
-        ariaLabel={ariaLabel ? `${ariaLabel} 小时` : "小时"}
+        placeholder="小時"
+        ariaLabel={ariaLabel ? `${ariaLabel} 小時` : "小時"}
         onValueChange={updateHour}
       />
       <span className="font-medium text-muted-foreground">:</span>
@@ -121,8 +121,8 @@ export function TimeSelect({
         value={selected.minute}
         items={minutes}
         max={59}
-        placeholder="分钟"
-        ariaLabel={ariaLabel ? `${ariaLabel} 分钟` : "分钟"}
+        placeholder="分鐘"
+        ariaLabel={ariaLabel ? `${ariaLabel} 分鐘` : "分鐘"}
         onValueChange={updateMinute}
       />
       {optional && hasValue && (
@@ -132,8 +132,8 @@ export function TimeSelect({
           size="icon-sm"
           className="shrink-0"
           onClick={() => onValueChange("")}
-          aria-label="清除结束时间"
-          title="不设置结束时间"
+          aria-label="清除結束時間"
+          title="不設定結束時間"
         >
           <X />
         </Button>

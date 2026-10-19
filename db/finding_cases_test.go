@@ -34,7 +34,7 @@ func caseTestDB(t *testing.T) (*DB, *Task, []int64) {
 func TestFindingCaseMergePreservesRecordsAndVersions(t *testing.T) {
 	d, task, ids := caseTestDB(t)
 	ctx := context.Background()
-	id, err := d.MergeFindingCase(ctx, task.ID, ids[:3], "订单越权", "同一接口同一权限检查缺失", "reporter")
+	id, err := d.MergeFindingCase(ctx, task.ID, ids[:3], "訂單越權", "同一介面同一權限檢查缺失", "reporter")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestFindingCaseMergePreservesRecordsAndVersions(t *testing.T) {
 	if same.Version != c.Version {
 		t.Fatal("idempotent merge invalidated report")
 	}
-	if err := d.UpdateFindingCaseReport(ctx, id, c.Version, "订单越权", "complete PoC", "high", "verified sensitive data"); err != nil {
+	if err := d.UpdateFindingCaseReport(ctx, id, c.Version, "訂單越權", "complete PoC", "high", "verified sensitive data"); err != nil {
 		t.Fatal(err)
 	}
 	for i, fid := range ids[:3] {

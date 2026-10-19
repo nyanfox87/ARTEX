@@ -2,10 +2,10 @@
 """
 harvest_static.py <BASE_URL> <OUTDIR>
 
-参考模板 — 非通用成品。执行前须按目标站点调整，常见改动：
-  - extract_endpoints 正则（endpoint 方言）
-  - webpack/Vite manifest 解析逻辑
-  - 微前端 publicPath、重试策略
+參考模板 — 非通用成品。執行前須按目標站點調整，常見改動：
+  - extract_endpoints 正則（endpoint 方言）
+  - webpack/Vite manifest 解析邏輯
+  - 微前端 publicPath、重試策略
 
 Static SPA bundle harvester. Framework-agnostic; tuned for webpack + Vite.
   1. Fetch entry HTML, collect script/module references.

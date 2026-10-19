@@ -34,7 +34,7 @@ func decodeTaskTemplateRequest(w http.ResponseWriter, r *http.Request, req *task
 	if err != nil {
 		var tooLarge *http.MaxBytesError
 		if errors.As(err, &tooLarge) {
-			writeErr(w, http.StatusRequestEntityTooLarge, "请求正文过大")
+			writeErr(w, http.StatusRequestEntityTooLarge, "請求正文過大")
 		} else {
 			writeErr(w, http.StatusBadRequest, err.Error())
 		}
@@ -75,7 +75,7 @@ func validateTaskTemplateRequest(req taskTemplateRequest) error {
 			value = strings.Join(strings.Fields(value), " ")
 		}
 		if utf8.RuneCountInString(value) > check.limit {
-			return fmt.Errorf("%s 最多 %d 个字符", check.name, check.limit)
+			return fmt.Errorf("%s 最多 %d 個字元", check.name, check.limit)
 		}
 	}
 	return nil
@@ -86,7 +86,7 @@ func writeTaskTemplateErr(w http.ResponseWriter, err error) {
 	case errors.Is(err, db.ErrTaskTemplateInvalid):
 		writeErr(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, db.ErrTaskTemplateNameConflict):
-		writeErr(w, http.StatusConflict, "模板名称已存在")
+		writeErr(w, http.StatusConflict, "模板名稱已存在")
 	case errors.Is(err, db.ErrTaskTemplateNotFound):
 		writeErr(w, http.StatusNotFound, "task template not found")
 	default:
@@ -122,7 +122,7 @@ func (s *Server) pgCreateTaskTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 	rules, err := buildTaskInterceptRules(req.InterceptRules)
 	if err != nil {
-		writeErr(w, http.StatusBadRequest, "拦截/允许规则无效："+err.Error())
+		writeErr(w, http.StatusBadRequest, "攔截/允許規則無效："+err.Error())
 		return
 	}
 	template, err := pg.CreateTaskTemplate(db.TaskTemplateInput{
@@ -172,7 +172,7 @@ func (s *Server) pgUpdateTaskTemplate(w http.ResponseWriter, r *http.Request) {
 	if rulesPresent {
 		rules, err := buildTaskInterceptRules(req.InterceptRules)
 		if err != nil {
-			writeErr(w, http.StatusBadRequest, "拦截/允许规则无效："+err.Error())
+			writeErr(w, http.StatusBadRequest, "攔截/允許規則無效："+err.Error())
 			return
 		}
 		patch.SetInterceptRules = true

@@ -37,7 +37,7 @@ var ToolAugment func(ctx context.Context, agentKey string) (extra []actool.CoreT
 
 // AugmentTools returns base plus the agent's visible skill/MCP tools, the
 // DeferredInfo, and a cleanup func the caller must defer (closes MCP clients).
-// Built-in base tools are kept as-is — never filtered (内置工具留代码层，不做可见性过滤).
+// Built-in base tools are kept as-is — never filtered (內建工具留程式碼層，不做可見性過濾).
 func AugmentTools(ctx context.Context, agentKey string, base []actool.CoreTool) ([]actool.CoreTool, DeferredInfo, func()) {
 	var (
 		def     DeferredInfo
@@ -90,7 +90,7 @@ func (g *guardedTool) Call(ctx context.Context, in json.RawMessage, tc *actool.T
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("[tools] %s panic: %v\n%s", g.Name(), r, debug.Stack())
-			res, err = actool.Errorf(fmt.Sprintf("工具 %s 内部错误：%v（本次调用已失败，可换个参数或改用别的工具）", g.Name(), r)), nil
+			res, err = actool.Errorf(fmt.Sprintf("工具 %s 內部錯誤：%v（本次呼叫已失敗，可換個引數或改用別的工具）", g.Name(), r)), nil
 		}
 	}()
 	return g.CoreTool.Call(ctx, in, tc)

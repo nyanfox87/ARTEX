@@ -41,21 +41,21 @@ export function ChangePasswordDialog({
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!oldPassword || !newPassword) {
-      toast.error("请填写当前密码和新密码");
+      toast.error("請填寫當前密碼和新密碼");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("两次输入的新密码不一致");
+      toast.error("兩次輸入的新密碼不一致");
       return;
     }
     setSaving(true);
     api
       .changePassword(oldPassword, newPassword)
       .then(() => {
-        toast.success("密码已修改");
+        toast.success("密碼已修改");
         onOpenChange(false);
       })
-      .catch((err) => toast.error(`修改失败：${(err as Error).message}`))
+      .catch((err) => toast.error(`修改失敗：${(err as Error).message}`))
       .finally(() => setSaving(false));
   }
 
@@ -64,14 +64,14 @@ export function ChangePasswordDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={submit}>
           <DialogHeader>
-            <DialogTitle>修改密码</DialogTitle>
+            <DialogTitle>修改密碼</DialogTitle>
             <DialogDescription>
-              用户名固定为 <b>ARTEX</b>。需先输入当前密码验证；修改后已签发的登录 token 仍有效直至过期。
+              使用者名稱固定為 <b>ARTEX</b>。需先輸入當前密碼驗證；修改後已簽發的登入 token 仍有效直至過期。
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cp-old">当前密码</Label>
+              <Label htmlFor="cp-old">當前密碼</Label>
               <Input
                 id="cp-old"
                 type="password"
@@ -82,7 +82,7 @@ export function ChangePasswordDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cp-new">新密码</Label>
+              <Label htmlFor="cp-new">新密碼</Label>
               <Input
                 id="cp-new"
                 type="password"
@@ -93,7 +93,7 @@ export function ChangePasswordDialog({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cp-confirm">确认新密码</Label>
+              <Label htmlFor="cp-confirm">確認新密碼</Label>
               <Input
                 id="cp-confirm"
                 type="password"
@@ -109,7 +109,7 @@ export function ChangePasswordDialog({
               取消
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "修改中…" : "确认修改"}
+              {saving ? "修改中…" : "確認修改"}
             </Button>
           </DialogFooter>
         </form>

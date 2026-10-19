@@ -8,16 +8,16 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 // ── DSL autocomplete ──────────────────────────────────────────────────────────
-// Shared by the global asset view (/function/assets) and the per-task 测试资产
+// Shared by the global asset view (/function/assets) and the per-task 測試資產
 // search, so both search boxes behave and look identical.
 
 const DSL_FIELDS: { name: string; desc: string; ops: { op: string; desc: string }[] }[] = [
   {
     name: "domain",
-    desc: "域名（根域名/子域名/服务域名）",
+    desc: "域名（根域名/子域名/服務域名）",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
@@ -26,16 +26,16 @@ const DSL_FIELDS: { name: string; desc: string; ops: { op: string; desc: string 
     desc: "IPv4/IPv6 地址",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "url",
-    desc: "完整 URL（服务/接口）",
+    desc: "完整 URL（服務/介面）",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
@@ -44,70 +44,70 @@ const DSL_FIELDS: { name: string; desc: string; ops: { op: string; desc: string 
     desc: "根域名",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "page_title",
-    desc: "页面标题（HTTP 服务）",
+    desc: "頁面標題（HTTP 服務）",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "icp",
-    desc: "ICP 备案号",
+    desc: "ICP 備案號",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "service_name",
-    desc: "服务名称（非 HTTP 服务）",
+    desc: "服務名稱（非 HTTP 服務）",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "app_name",
-    desc: "应用名称",
+    desc: "應用名稱",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "bundle_id",
-    desc: "应用 Bundle ID",
+    desc: "應用 Bundle ID",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "category",
-    desc: "应用分类",
+    desc: "應用分類",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "app_icp",
-    desc: "应用 ICP 备案",
+    desc: "應用 ICP 備案",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
@@ -115,66 +115,66 @@ const DSL_FIELDS: { name: string; desc: string; ops: { op: string; desc: string 
     name: "method",
     desc: "HTTP 方法 GET/POST/PUT/…",
     ops: [
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "service_type",
-    desc: "服务类型：http | other",
+    desc: "服務型別：http | other",
     ops: [
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "record_type",
-    desc: "DNS 解析类型 A/CNAME/MX/…",
+    desc: "DNS 解析型別 A/CNAME/MX/…",
     ops: [
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "technology",
-    desc: "技术指纹（数组字段）",
+    desc: "技術指紋（陣列欄位）",
     ops: [
       { op: "=", desc: "模糊匹配" },
-      { op: "==", desc: "精确匹配" },
+      { op: "==", desc: "精確匹配" },
       { op: "!=", desc: "排除" },
     ],
   },
   {
     name: "port",
-    desc: "端口号（整数）",
+    desc: "埠號（整數）",
     ops: [
-      { op: "==", desc: "等于" },
-      { op: "!=", desc: "不等于" },
-      { op: ">", desc: "大于" },
-      { op: ">=", desc: "大于等于" },
-      { op: "<", desc: "小于" },
-      { op: "<=", desc: "小于等于" },
+      { op: "==", desc: "等於" },
+      { op: "!=", desc: "不等於" },
+      { op: ">", desc: "大於" },
+      { op: ">=", desc: "大於等於" },
+      { op: "<", desc: "小於" },
+      { op: "<=", desc: "小於等於" },
     ],
   },
   {
     name: "status_code",
-    desc: "HTTP 状态码（整数）",
+    desc: "HTTP 狀態碼（整數）",
     ops: [
-      { op: "==", desc: "等于" },
-      { op: "!=", desc: "不等于" },
-      { op: ">", desc: "大于" },
-      { op: ">=", desc: "大于等于" },
-      { op: "<", desc: "小于" },
-      { op: "<=", desc: "小于等于" },
+      { op: "==", desc: "等於" },
+      { op: "!=", desc: "不等於" },
+      { op: ">", desc: "大於" },
+      { op: ">=", desc: "大於等於" },
+      { op: "<", desc: "小於" },
+      { op: "<=", desc: "小於等於" },
     ],
   },
-  { name: "company_id", desc: "归属企业 ID（整数）", ops: [{ op: "==", desc: "等于" }] },
-  { name: "task_id", desc: "来源任务 ID（整数）", ops: [{ op: "==", desc: "等于" }] },
+  { name: "company_id", desc: "歸屬企業 ID（整數）", ops: [{ op: "==", desc: "等於" }] },
+  { name: "task_id", desc: "來源任務 ID（整數）", ops: [{ op: "==", desc: "等於" }] },
 ];
 
 const LOGIC_OPS = [
-  { label: "AND", desc: "且（两个条件都满足）" },
-  { label: "OR", desc: "或（满足其中之一）" },
+  { label: "AND", desc: "且（兩個條件都滿足）" },
+  { label: "OR", desc: "或（滿足其中之一）" },
 ];
 
 interface DslSuggestion {
@@ -261,7 +261,7 @@ const KIND_STYLE: Record<string, string> = {
 };
 
 // AssetDslSearch is the shared DSL search box: a monospace input with a
-// field/operator/logic autocomplete popover and a status line ("找到 N 条" /
+// field/operator/logic autocomplete popover and a status line ("找到 N 條" /
 // error / loading). Used by both the global asset view and the per-task view.
 export function AssetDslSearch({
   query,
@@ -341,7 +341,7 @@ export function AssetDslSearch({
         <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           ref={inputRef}
-          placeholder="DSL 搜索：domain=example AND status_code>=400"
+          placeholder="DSL 搜尋：domain=example AND status_code>=400"
           value={query}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -375,7 +375,7 @@ export function AssetDslSearch({
       </div>
       {query.trim() && !open && (
         <p className="pl-1 text-[11px] text-muted-foreground">
-          {loading ? "搜索中…" : error ? <span className="text-destructive">{error}</span> : `找到 ${count ?? 0} 条`}
+          {loading ? "搜尋中…" : error ? <span className="text-destructive">{error}</span> : `找到 ${count ?? 0} 條`}
         </p>
       )}
     </div>

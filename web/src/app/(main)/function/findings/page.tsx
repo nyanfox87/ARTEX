@@ -70,14 +70,14 @@ import {
 
 const FINDING_LIST_PREFERENCE_KEY = "artex_finding_list_preferences";
 
-// 列表视图:flat = 跨任务平铺大表(默认);grouped = 按任务分组折叠;
-// asset = 左侧资产树 + 右侧该子树下的发现。
+// 列表檢視:flat = 跨任務平鋪大表(預設);grouped = 按任務分組摺疊;
+// asset = 左側資產樹 + 右側該子樹下的發現。
 type FindingView = "cases" | "flat" | "grouped" | "asset";
 
 const FINDING_VIEWS: FindingView[] = ["cases", "flat", "grouped", "asset"];
 
-// 资产树的一次性快照。与另外两个视图不同,资产视图不轮询:进入视图、改筛选、
-// 或本页改动了发现之后才重新查询。
+// 資產樹的一次性快照。與另外兩個檢視不同,資產檢視不輪詢:進入檢視、改篩選、
+// 或本頁改動了發現之後才重新查詢。
 interface AssetTreeState {
   nodes: FindingAssetNode[];
   findingTotal: number;
@@ -96,7 +96,7 @@ const EMPTY_ASSET_TREE: AssetTreeState = {
   loading: false,
 };
 
-// 分组视图里每个已展开任务组自带一份分页状态,彼此独立。
+// 分組視圖裡每個已展開任務組自帶一份分頁狀態,彼此獨立。
 interface GroupFindingsState {
   caseRows: FindingCaseListRow[];
   items: Finding[];
@@ -107,7 +107,7 @@ interface GroupFindingsState {
   loading: boolean;
 }
 
-// 平铺视图的页码单独放 state(而非塞进快照),筛选一变就能连带重置并触发重新加载。
+// 平鋪檢視的頁碼單獨放 state(而非塞進快照),篩選一變就能連帶重置並觸發重新載入。
 interface FlatFindingsState {
   caseRows: FindingCaseListRow[];
   items: Finding[];
@@ -171,7 +171,7 @@ export default function FindingsPage() {
   const activeFilterFingerprint = React.useRef(filterFingerprint);
   activeFilterFingerprint.current = filterFingerprint;
 
-  // 一个轻量请求覆盖所有行/视图，避免逐行拉取完整复测历史；等待上一轮完成再轮询。
+  // 一個輕量請求覆蓋所有行/檢視，避免逐行拉取完整複測歷史；等待上一輪完成再輪詢。
   React.useEffect(() => {
     let disposed = false;
     let failed = false;
@@ -184,7 +184,7 @@ export default function FindingsPage() {
         setActiveRetests(Object.fromEntries(rows.map((item) => [item.finding_id, item])));
         failed = false;
       } catch (error) {
-        if (!disposed && !failed) toast.error(`加载复测状态失败：${(error as Error).message}`);
+        if (!disposed && !failed) toast.error(`載入複測狀態失敗：${(error as Error).message}`);
         failed = true;
       } finally {
         if (!disposed) timer = setTimeout(() => void refreshRetests(), 3000);
@@ -239,7 +239,7 @@ export default function FindingsPage() {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  // setFindings 同时改写两个视图缓存里的同一条发现,切换视图不会看到过期状态。
+  // setFindings 同時改寫兩個檢視快取裡的同一條發現,切換檢視不會看到過期狀態。
   const setFindings = React.useCallback((update: (current: Finding[]) => Finding[]) => {
     function applyUpdate<T extends { items: Finding[]; caseRows: FindingCaseListRow[] }>(current: T): T {
       const items = update(current.items);
@@ -261,9 +261,9 @@ export default function FindingsPage() {
     });
   }, []);
 
-  // 勾选导出:按 finding_id(独立表 id)记选中项,跨页保留。
+  // 勾選匯出:按 finding_id(獨立表 id)記選中項,跨頁保留。
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(() => new Set());
-  // 导出弹窗状态:范围(当前筛选/全部/选中) × 格式(md 单文件/md 分文件 zip/csv/json)。
+  // 匯出彈窗狀態:範圍(當前篩選/全部/選中) × 格式(md 單檔案/md 分檔案 zip/csv/json)。
   const [exportOpen, setExportOpen] = React.useState(false);
   const [exportScope, setExportScope] = React.useState<"filtered" | "all" | "selected">("filtered");
   const [exportFormat, setExportFormat] = React.useState<"md-single" | "md-zip" | "csv" | "json">("md-single");
@@ -291,7 +291,7 @@ export default function FindingsPage() {
     });
   }, []);
 
-  // 打开导出弹窗时,若有勾选项则默认范围切到「选中」,否则「当前筛选」。
+  // 開啟匯出彈窗時,若有勾選項則預設範圍切到「選中」,否則「當前篩選」。
   function openExport() {
     setExportScope(selectedIds.size > 0 ? "selected" : "filtered");
     setExportOpen(true);
@@ -316,9 +316,9 @@ export default function FindingsPage() {
         includeOriginals,
       });
       setExportOpen(false);
-      toast.success("已开始下载导出文件");
+      toast.success("已開始下載匯出檔案");
     } catch (e) {
-      toast.error(`导出失败：${(e as Error).message}`);
+      toast.error(`匯出失敗：${(e as Error).message}`);
     } finally {
       setExporting(false);
     }
@@ -337,10 +337,10 @@ export default function FindingsPage() {
   groupFindingsRef.current = groupFindings;
   visibleGroupKeysRef.current = new Set(groups.map(findingGroupKey));
 
-  // 资产视图右侧列表 = 平铺列表 + 选中子树的筛选,所以两个视图共用一份列表状态。
+  // 資產檢視右側列表 = 平鋪列表 + 選中子樹的篩選,所以兩個檢視共用一份列表狀態。
   const activeAssetScope = view === "asset" ? assetScope : null;
 
-  // loadFlat 拉取平铺视图的当前页;task 筛选交给后端,与分组视图共用同一批筛选条件。
+  // loadFlat 拉取平鋪檢視的當前頁;task 篩選交給後端,與分組檢視共用同一批篩選條件。
   const loadFlat = React.useCallback(async () => {
     const requestFilter = filterFingerprint;
     if (activeFilterFingerprint.current !== requestFilter) return;
@@ -376,8 +376,8 @@ export default function FindingsPage() {
     }
   }, [activeAssetScope, filterFingerprint, flatPage, flatPageSize, severity, status, vulnclass, task, query, sort]);
 
-  // loadAssetTree 取整棵资产树。树不随选中节点变化(否则选一下就塌成一条链),
-  // 所以这里不带 assetScope。
+  // loadAssetTree 取整棵資產樹。樹不隨選中節點變化(否則選一下就塌成一條鏈),
+  // 所以這裡不帶 assetScope。
   const loadAssetTree = React.useCallback(async () => {
     const requestFilter = filterFingerprint;
     if (activeFilterFingerprint.current !== requestFilter) return;
@@ -397,7 +397,7 @@ export default function FindingsPage() {
     } catch (e) {
       if (request !== assetTreeRequest.current || activeFilterFingerprint.current !== requestFilter) return;
       setAssetTree((current) => ({ ...current, loading: false }));
-      toast.error(`资产树加载失败：${(e as Error).message}`);
+      toast.error(`資產樹載入失敗：${(e as Error).message}`);
     }
   }, [filterFingerprint, severity, status, vulnclass, task, query, sort]);
 
@@ -514,17 +514,17 @@ export default function FindingsPage() {
     [expandedGroups, groupFindings, loadGroup],
   );
 
-  // 行内改动后刷新当前视图:平铺视图重拉当前页,分组视图刷组头 + 该发现所在的组。
+  // 行內改動後重新整理當前檢視:平鋪檢視重拉當前頁,分組檢視刷組頭 + 該發現所在的組。
   const refreshAfterMutation = React.useCallback(
     (finding: Finding, removed = false) => {
       if (view === "asset") {
-        // 资产视图不轮询,所以改完要顺带把树的计数也重新算一次。
+        // 資產檢視不輪詢,所以改完要順帶把樹的計數也重新算一次。
         void loadFlat();
         void loadAssetTree();
         return;
       }
       if (view === "flat") {
-        // 删空最后一页时,页码由越界修正 effect 回退并连带重新加载。
+        // 刪空最後一頁時,頁碼由越界修正 effect 回退並連帶重新載入。
         void loadFlat();
         return;
       }
@@ -549,31 +549,31 @@ export default function FindingsPage() {
     setGroupFindings({});
     setFlatPage(1);
     setFlat(EMPTY_FLAT_STATE);
-    // 筛选变了树也会变,原先选中的节点可能已经不在树里,退回「全部资产」。
+    // 篩選變了樹也會變,原先選中的節點可能已經不在樹裡,退回「全部資產」。
     setAssetScope(null);
     setAssetTree(EMPTY_ASSET_TREE);
   }, [filterFingerprint]);
 
-  // 换资产节点等于换了一份结果集,回到第一页。
+  // 換資產節點等於換了一份結果集,回到第一頁。
   React.useEffect(() => {
     void assetScope;
     setFlatPage(1);
   }, [assetScope]);
 
-  // 资产树只在进入视图 / 筛选变化时查一次(以及本页改动发现后由
-  // refreshAfterMutation 主动重拉),不做轮询。
+  // 資產樹只在進入檢視 / 篩選變化時查一次(以及本頁改動發現後由
+  // refreshAfterMutation 主動重拉),不做輪詢。
   React.useEffect(() => {
     if (!preferencesHydrated || view !== "asset") return;
-    void activeRetestFingerprint; // 复测结束可能改变状态筛选下的资产计数。
+    void activeRetestFingerprint; // 複測結束可能改變狀態篩選下的資產計數。
     void loadAssetTree();
   }, [activeRetestFingerprint, loadAssetTree, preferencesHydrated, view]);
 
-  // 只轮询当前视图:平铺视图刷当前页,分组视图刷组头与每个已展开的组(其分页彼此独立)。
-  // 资产视图只查一次(见下面的 return),它的左树是导航结构,没必要每 5 秒重算。
-  // 等偏好水合后再发首个请求,否则会先按默认视图/筛选白拉一次。
+  // 只輪詢當前檢視:平鋪檢視刷當前頁,分組檢視刷組頭與每個已展開的組(其分頁彼此獨立)。
+  // 資產檢視只查一次(見下面的 return),它的左樹是導航結構,沒必要每 5 秒重算。
+  // 等偏好水合後再發首個請求,否則會先按預設檢視/篩選白拉一次。
   React.useEffect(() => {
     if (!preferencesHydrated) return;
-    void activeRetestFingerprint; // 包括不定时轮询的资产视图，也在复测结束后刷新处置状态。
+    void activeRetestFingerprint; // 包括不定時輪詢的資產檢視，也在複測結束後重新整理處置狀態。
     const refresh = () => {
       if (view === "flat" || view === "asset") {
         if (!flatStateRef.current.loading) void loadFlat();
@@ -648,7 +648,7 @@ export default function FindingsPage() {
       setFindings((cur) => cur.map((x) => (isSameFinding(x, f) ? { ...x, status: next } : x)));
       try {
         await api.setFindingStatus(f.finding_id, next);
-        toast.success(`已标记为「${statusMeta("finding", next).label}」`);
+        toast.success(`已標記為「${statusMeta("finding", next).label}」`);
         // refresh stat cards (pending count) and drop the row if it no longer matches the status filter
         api
           .findingStats()
@@ -664,22 +664,22 @@ export default function FindingsPage() {
         refreshAfterMutation(f);
       } catch (e) {
         setFindings((cur) => cur.map((x) => (isSameFinding(x, f) ? { ...x, status: prev } : x)));
-        toast.error(`更新失败：${(e as Error).message}`);
+        toast.error(`更新失敗：${(e as Error).message}`);
       }
     },
     [refreshAfterMutation, setFindings, status],
   );
 
-  // 行内展开的详细报告缓存按全局稳定行键存。report 是大段 Markdown,列表查询不带它,
-  // 故展开时才按 finding_id 单独拉取一次;done 且文本为空 = 该漏洞暂无报告。
+  // 行內展開的詳細報告快取按全域穩定行鍵存。report 是大段 Markdown,列表查詢不帶它,
+  // 故展開時才按 finding_id 單獨拉取一次;done 且文本為空 = 該漏洞暫無報告。
   const [reports, setReports] = React.useState<Record<string, FindingReport>>({});
 
-  // 行内可编辑缓冲:当前展开行的名称/类别/严重等级,展开时用该行数据初始化,收起清空。
-  // 单行展开,故一份缓冲即可。
+  // 行內可編輯緩衝:當前展開行的名稱/類別/嚴重等級,展開時用該行資料初始化,收起清空。
+  // 單行展開,故一份緩衝即可。
   const [edit, setEdit] = React.useState<FindingEdit | null>(null);
   const [saving, setSaving] = React.useState(false);
 
-  // toggle 展开/收起一行;新展开时初始化编辑缓冲,并(尚未取过时)按 finding_id 拉一次报告缓存。
+  // toggle 展開/收起一行;新展開時初始化編輯緩衝,並(尚未取過時)按 finding_id 拉一次報告快取。
   const toggleRow = React.useCallback(
     (f: Finding) => {
       const key = findingRowKey(f);
@@ -701,7 +701,7 @@ export default function FindingsPage() {
     [expanded, reports],
   );
 
-  // saveEdit 保存当前展开行的名称/类别/严重等级,回写本地列表并刷新统计(类别下拉/严重计数可能变)。
+  // saveEdit 儲存當前展開行的名稱/類別/嚴重等級,回寫本地列表並重新整理統計(類別下拉/嚴重計數可能變)。
   const saveEdit = React.useCallback(
     async (f: Finding) => {
       if (!f.finding_id || !edit) return;
@@ -719,7 +719,7 @@ export default function FindingsPage() {
               : x,
           ),
         );
-        toast.success("已保存");
+        toast.success("已儲存");
         api
           .findingStats()
           .then(setStats)
@@ -728,7 +728,7 @@ export default function FindingsPage() {
           });
         refreshAfterMutation(f);
       } catch (e) {
-        toast.error(`保存失败：${(e as Error).message}`);
+        toast.error(`儲存失敗：${(e as Error).message}`);
       } finally {
         setSaving(false);
       }
@@ -736,7 +736,7 @@ export default function FindingsPage() {
     [edit, refreshAfterMutation, setFindings],
   );
 
-  // deleteFinding 删除一个漏洞(需二次确认):删成功后从列表移除、收起行、刷新统计。
+  // deleteFinding 刪除一個漏洞(需二次確認):刪成功後從列表移除、收起行、重新整理統計。
   const deleteFinding = React.useCallback(
     async (f: Finding) => {
       if (!f.finding_id) return;
@@ -752,7 +752,7 @@ export default function FindingsPage() {
         setFlat((cur) => ({ ...cur, total: Math.max(0, cur.total - 1) }));
         const rowKey = findingRowKey(f);
         setExpanded((cur) => (cur === rowKey ? null : cur));
-        toast.success("已删除漏洞");
+        toast.success("已刪除漏洞");
         api
           .findingStats()
           .then(setStats)
@@ -761,7 +761,7 @@ export default function FindingsPage() {
           });
         refreshAfterMutation(f, true);
       } catch (e) {
-        toast.error(`删除失败：${(e as Error).message}`);
+        toast.error(`刪除失敗：${(e as Error).message}`);
       }
     },
     [refreshAfterMutation, setFindings],
@@ -779,30 +779,30 @@ export default function FindingsPage() {
       const result = await api.deepenFinding(deepenFinding.finding_id, deepenDescription.trim());
       toast.success(
         result.queued
-          ? `深入意图 #${result.intent_id} 已进入任务队列`
-          : `已创建高优先级 Worker 意图 #${result.intent_id}`,
+          ? `深入意圖 #${result.intent_id} 已進入任務佇列`
+          : `已建立高優先順序 Worker 意圖 #${result.intent_id}`,
       );
       refreshAfterMutation(deepenFinding);
       setDeepenFinding(null);
       setDeepenDescription("");
     } catch (error) {
-      toast.error(`提交失败：${(error as Error).message}`);
+      toast.error(`提交失敗：${(error as Error).message}`);
     } finally {
       setDeepening(false);
     }
   }
 
   const statCards = [
-    { label: "独立漏洞", value: stats.distinct?.total ?? stats.total, icon: BugIcon },
-    { label: "上报记录", value: stats.total, tone: "text-amber-500", icon: ClockIcon },
-    { label: "严重", value: stats.distinct?.critical ?? stats.critical, tone: "text-rose-600", icon: ShieldAlertIcon },
+    { label: "獨立漏洞", value: stats.distinct?.total ?? stats.total, icon: BugIcon },
+    { label: "上報記錄", value: stats.total, tone: "text-amber-500", icon: ClockIcon },
+    { label: "嚴重", value: stats.distinct?.critical ?? stats.critical, tone: "text-rose-600", icon: ShieldAlertIcon },
     { label: "高危", value: stats.distinct?.high ?? stats.high, tone: "text-red-500", icon: TriangleAlertIcon },
     { label: "中危", value: stats.distinct?.medium ?? stats.medium, tone: "text-amber-500", icon: TriangleAlertIcon },
     { label: "低危", value: stats.distinct?.low ?? stats.low, tone: "text-slate-500", icon: InfoIcon },
   ];
 
-  // 导出弹窗里「当前筛选」的条数:两个视图的筛选一致,只是统计口径来源不同。
-  // 平铺与资产视图共用 flat 列表状态,分组视图的口径来自组接口的 finding_total。
+  // 匯出彈窗裡「當前篩選」的條數:兩個檢視的篩選一致,只是統計口徑來源不同。
+  // 平鋪與資產檢視共用 flat 列表狀態,分組檢視的口徑來自組介面的 finding_total。
   const [caseTotal, setCaseTotal] = React.useState(0);
   const filteredTotal = view === "cases" ? caseTotal : view === "grouped" ? total : flat.total;
   const assetPath = React.useMemo(
@@ -828,7 +828,7 @@ export default function FindingsPage() {
     onDelete: deleteFinding,
   };
 
-  // 平铺视图与资产视图右侧是同一张表 + 同一份分页,只是筛选条件不同。
+  // 平鋪檢視與資產檢視右側是同一張表 + 同一份分頁,只是篩選條件不同。
   const flatListCard = (
     <Card className="gap-0 py-0">
       <CardContent className="px-0">
@@ -842,7 +842,7 @@ export default function FindingsPage() {
               items={flat.items}
               caseRows={flat.caseRows}
               presentation={view === "asset" ? "asset" : "records"}
-              selectAllLabel="选择当前页全部"
+              selectAllLabel="選擇當前頁全部"
               {...rowProps}
             />
             <TablePagination
@@ -866,15 +866,15 @@ export default function FindingsPage() {
     <div className="flex flex-1 flex-col gap-4 md:gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">发现</h1>
-          <p className="text-muted-foreground text-sm">跨任务漏洞汇总</p>
+          <h1 className="text-xl font-semibold tracking-tight">發現</h1>
+          <p className="text-muted-foreground text-sm">跨任務漏洞彙總</p>
         </div>
         <Tabs value={view} onValueChange={(v) => setView(v as FindingView)}>
           <TabsList>
             <TabsTrigger value="cases">按漏洞</TabsTrigger>
-            <TabsTrigger value="flat">原始上报</TabsTrigger>
-            <TabsTrigger value="grouped">按任务分组</TabsTrigger>
-            <TabsTrigger value="asset">按资产</TabsTrigger>
+            <TabsTrigger value="flat">原始上報</TabsTrigger>
+            <TabsTrigger value="grouped">按任務分組</TabsTrigger>
+            <TabsTrigger value="asset">按資產</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -902,8 +902,8 @@ export default function FindingsPage() {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="检索漏洞内容"
-              aria-label="检索漏洞内容"
+              placeholder="檢索漏洞內容"
+              aria-label="檢索漏洞內容"
             />
             <InputGroupAddon>
               <SearchIcon aria-hidden="true" />
@@ -921,13 +921,13 @@ export default function FindingsPage() {
             {(
               [
                 ["all", "全部"],
-                ["critical", "严重"],
+                ["critical", "嚴重"],
                 ["high", "高危"],
                 ["medium", "中危"],
                 ["low", "低危"],
               ] as const
             ).map(([val, label]) => (
-              <ToggleGroupItem key={val} value={val} aria-label={`按${label}等级筛选`}>
+              <ToggleGroupItem key={val} value={val} aria-label={`按${label}等級篩選`}>
                 {label}
               </ToggleGroupItem>
             ))}
@@ -935,10 +935,10 @@ export default function FindingsPage() {
 
           <Select value={status} onValueChange={(v) => setStatus(v as "all" | FindingStatus)}>
             <SelectTrigger size="sm" className="w-32">
-              <SelectValue placeholder="状态" />
+              <SelectValue placeholder="狀態" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部状态</SelectItem>
+              <SelectItem value="all">全部狀態</SelectItem>
               {FINDING_STATUSES.map((st) => (
                 <SelectItem key={st} value={st}>
                   {statusMeta("finding", st).label}
@@ -949,10 +949,10 @@ export default function FindingsPage() {
 
           <Select value={vulnclass} onValueChange={setVulnclass}>
             <SelectTrigger size="sm" className="w-40">
-              <SelectValue placeholder="漏洞类型" />
+              <SelectValue placeholder="漏洞型別" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部类型</SelectItem>
+              <SelectItem value="all">全部型別</SelectItem>
               {stats.vulnclasses.map((vc) => (
                 <SelectItem key={vc} value={vc}>
                   {vc}
@@ -963,14 +963,14 @@ export default function FindingsPage() {
 
           <Select value={task} onValueChange={setTask}>
             <SelectTrigger size="sm" className="w-48">
-              <SelectValue placeholder="任务" />
+              <SelectValue placeholder="任務" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部任务</SelectItem>
-              <SelectItem value={UNASSIGNED_TASK}>未关联 / 任务已删除</SelectItem>
+              <SelectItem value="all">全部任務</SelectItem>
+              <SelectItem value={UNASSIGNED_TASK}>未關聯 / 任務已刪除</SelectItem>
               {(stats.tasks ?? []).map((t) => {
                 const id = String(t.id);
-                const label = t.name || t.description || `任务 #${id}（已删除）`;
+                const label = t.name || t.description || `任務 #${id}（已刪除）`;
                 return (
                   <SelectItem key={id} value={id}>
                     <span className="flex w-full items-center gap-2">
@@ -993,14 +993,14 @@ export default function FindingsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="severity">按严重度</SelectItem>
-              <SelectItem value="time">按时间</SelectItem>
+              <SelectItem value="severity">按嚴重度</SelectItem>
+              <SelectItem value="time">按時間</SelectItem>
             </SelectContent>
           </Select>
 
           <div className="ml-auto flex items-center gap-3">
             {selectedIds.size > 0 && (
-              <span className="text-xs text-muted-foreground tabular-nums">已选 {selectedIds.size} 条</span>
+              <span className="text-xs text-muted-foreground tabular-nums">已選 {selectedIds.size} 條</span>
             )}
             <Button
               size="sm"
@@ -1010,7 +1010,7 @@ export default function FindingsPage() {
                 setReviewing(true);
                 try {
                   await api.reviewFindingCases([...selectedIds]);
-                  toast.success("已提交整理，按任务分别执行");
+                  toast.success("已提交整理，按任務分別執行");
                 } catch (e) {
                   toast.error((e as Error).message);
                 } finally {
@@ -1018,10 +1018,10 @@ export default function FindingsPage() {
                 }
               }}
             >
-              {reviewing ? <Spinner /> : null}整理所选（{selectedIds.size}）
+              {reviewing ? <Spinner /> : null}整理所選（{selectedIds.size}）
             </Button>
             <Button size="sm" variant="outline" onClick={openExport}>
-              <DownloadIcon /> 导出
+              <DownloadIcon /> 匯出
             </Button>
           </div>
         </div>
@@ -1057,7 +1057,7 @@ export default function FindingsPage() {
                   className={cn("hover:text-foreground", assetScope === null && "font-medium text-foreground")}
                   onClick={() => setAssetScope(null)}
                 >
-                  全部资产
+                  全部資產
                 </button>
                 {assetPath.map((node) => (
                   <React.Fragment key={node.key}>
@@ -1075,7 +1075,7 @@ export default function FindingsPage() {
                     </button>
                   </React.Fragment>
                 ))}
-                <span className="ml-auto shrink-0 text-xs tabular-nums">共 {flat.total} 条</span>
+                <span className="ml-auto shrink-0 text-xs tabular-nums">共 {flat.total} 條</span>
               </div>
               {flatListCard}
             </div>
@@ -1123,13 +1123,13 @@ export default function FindingsPage() {
                         <div className="flex min-w-0 flex-col gap-1">
                           <CardTitle className="truncate text-sm">
                             {group.task_id === null
-                              ? "未关联 / 任务已删除"
+                              ? "未關聯 / 任務已刪除"
                               : group.task_name
-                                ? `${group.task_name}（任务 #${group.task_id}）`
-                                : `任务 #${group.task_id}`}
+                                ? `${group.task_name}（任務 #${group.task_id}）`
+                                : `任務 #${group.task_id}`}
                           </CardTitle>
                           <CardDescription className="truncate" title={group.task_description}>
-                            {group.task_description || "来源任务不可用"}
+                            {group.task_description || "來源任務不可用"}
                           </CardDescription>
                         </div>
                       </button>
@@ -1152,7 +1152,7 @@ export default function FindingsPage() {
                           <Button size="icon-sm" variant="ghost" asChild>
                             <Link
                               href={`/function/tasks/detail?id=${group.task_id}`}
-                              aria-label={`查看任务 #${group.task_id}`}
+                              aria-label={`檢視任務 #${group.task_id}`}
                             >
                               <ArrowUpRightIcon />
                             </Link>
@@ -1173,7 +1173,7 @@ export default function FindingsPage() {
                             items={state.items}
                             caseRows={state.caseRows}
                             presentation="task"
-                            selectAllLabel="选择本组当前页全部"
+                            selectAllLabel="選擇本組當前頁全部"
                             {...rowProps}
                           />
                           <TablePagination
@@ -1192,7 +1192,7 @@ export default function FindingsPage() {
             })}
             {groups.length === 0 && (
               <Card>
-                <CardContent className="py-12 text-center text-sm text-muted-foreground">没有匹配的发现。</CardContent>
+                <CardContent className="py-12 text-center text-sm text-muted-foreground">沒有匹配的發現。</CardContent>
               </Card>
             )}
             <TablePagination
@@ -1243,7 +1243,7 @@ export default function FindingsPage() {
           <DialogHeader>
             <DialogTitle>深入利用漏洞</DialogTitle>
             <DialogDescription className="break-words">
-              将在原任务 #{deepenFinding?.task_id} 中创建优先级 10 的 Worker 意图，基于当前漏洞开展二次验证：
+              將在原任務 #{deepenFinding?.task_id} 中建立優先順序 10 的 Worker 意圖，基於當前漏洞開展二次驗證：
               {deepenFinding?.name || deepenFinding?.vulnclass || deepenFinding?.summary}
             </DialogDescription>
           </DialogHeader>
@@ -1255,11 +1255,11 @@ export default function FindingsPage() {
                 value={deepenDescription}
                 onChange={(event) => setDeepenDescription(event.target.value)}
                 maxLength={4000}
-                placeholder="描述需要验证的利用路径、边界条件、目标或期望证据"
+                placeholder="描述需要驗證的利用路徑、邊界條件、目標或期望證據"
                 disabled={deepening}
               />
               <FieldDescription className="flex justify-between gap-3">
-                <span>新意图会继承该漏洞的资产锚点。</span>
+                <span>新意圖會繼承該漏洞的資產錨點。</span>
                 <span className="shrink-0 tabular-nums">{deepenDescription.length} / 4000</span>
               </FieldDescription>
             </Field>
@@ -1277,7 +1277,7 @@ export default function FindingsPage() {
             </Button>
             <Button onClick={submitDeepen} disabled={deepening || !deepenDescription.trim()}>
               {deepening && <Spinner data-icon="inline-start" />}
-              创建深入意图
+              建立深入意圖
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1286,33 +1286,33 @@ export default function FindingsPage() {
       <Dialog open={exportOpen} onOpenChange={setExportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>导出发现</DialogTitle>
-            <DialogDescription>选择导出范围与格式,生成后浏览器会自动下载。</DialogDescription>
+            <DialogTitle>匯出發現</DialogTitle>
+            <DialogDescription>選擇匯出範圍與格式,生成後瀏覽器會自動下載。</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-5 py-1">
             <div className="flex flex-col gap-2">
-              <span className="text-xs text-muted-foreground">导出范围</span>
+              <span className="text-xs text-muted-foreground">匯出範圍</span>
               <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as typeof exportScope)}>
                 <label htmlFor="export-scope-filtered" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-scope-filtered" value="filtered" /> 导出当前筛选结果（共 {filteredTotal}{" "}
-                  条）
+                  <RadioGroupItem id="export-scope-filtered" value="filtered" /> 匯出當前篩選結果（共 {filteredTotal}{" "}
+                  條）
                 </label>
                 <label htmlFor="export-scope-all" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-scope-all" value="all" /> 导出全部
+                  <RadioGroupItem id="export-scope-all" value="all" /> 匯出全部
                 </label>
                 <label
                   htmlFor="export-scope-selected"
                   className={cn("flex items-center gap-2 text-sm", selectedIds.size === 0 && "text-muted-foreground")}
                 >
                   <RadioGroupItem id="export-scope-selected" value="selected" disabled={selectedIds.size === 0} />
-                  导出勾选的 {selectedIds.size} 条
+                  匯出勾選的 {selectedIds.size} 條
                 </label>
               </RadioGroup>
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="text-xs text-muted-foreground">导出格式</span>
+              <span className="text-xs text-muted-foreground">匯出格式</span>
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="include-original-reports"
@@ -1320,15 +1320,15 @@ export default function FindingsPage() {
                   onCheckedChange={(v) => setIncludeOriginals(v === true)}
                 />
                 <label htmlFor="include-original-reports" className="text-sm">
-                  包含原始子报告（默认每个文件夹一份统一报告）
+                  包含原始子報告（預設每個資料夾一份統一報告）
                 </label>
               </div>
               <RadioGroup value={exportFormat} onValueChange={(v) => setExportFormat(v as typeof exportFormat)}>
                 <label htmlFor="export-format-md-single" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-md-single" value="md-single" /> Markdown 汇总报告（单个 .md 文件）
+                  <RadioGroupItem id="export-format-md-single" value="md-single" /> Markdown 彙總報告（單個 .md 檔案）
                 </label>
                 <label htmlFor="export-format-md-zip" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-md-zip" value="md-zip" /> Markdown 分文件（一漏洞一 .md,打包 .zip）
+                  <RadioGroupItem id="export-format-md-zip" value="md-zip" /> Markdown 分檔案（一漏洞一 .md,打包 .zip）
                 </label>
                 <label htmlFor="export-format-csv" className="flex items-center gap-2 text-sm">
                   <RadioGroupItem id="export-format-csv" value="csv" /> CSV 表格（.csv）
@@ -1345,7 +1345,7 @@ export default function FindingsPage() {
               取消
             </Button>
             <Button onClick={doExport} disabled={exporting || (exportScope === "selected" && selectedIds.size === 0)}>
-              <DownloadIcon /> {exporting ? "导出中…" : "导出"}
+              <DownloadIcon /> {exporting ? "匯出中…" : "匯出"}
             </Button>
           </DialogFooter>
         </DialogContent>
