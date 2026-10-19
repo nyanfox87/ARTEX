@@ -482,7 +482,7 @@ func (d *DB) seedDefaultInterceptRules() error {
 		// Agent 傳送 DELETE 請求的三種常見方式：
 		//   1. curl -X DELETE / --request DELETE（Bash 工具直接執行或寫入指令碼）
 		//   2. Python HTTP 客戶端 .delete() 方法
-		//   3. JS/通用腳本里的 method: 'DELETE' / method="DELETE"
+		//   3. JS/通用腳本裡的 method: 'DELETE' / method="DELETE"
 		{
 			name:     "[內建] curl / wget 傳送 DELETE 請求",
 			target:   "tool_input",

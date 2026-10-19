@@ -8,7 +8,7 @@ import (
 )
 
 // weComMarkdownLimit 是企微群機器人 markdown content 的硬上限（位元組，非字元）。
-// 這是全部六個渠道里最緊的限制，也是 TruncateBytes 存在的主要原因。
+// 這是全部六個渠道裡最緊的限制，也是 TruncateBytes 存在的主要原因。
 const weComMarkdownLimit = 4096
 
 // weComChannel 實現企業微信群機器人。

@@ -12,7 +12,7 @@ import (
 //
 // 這是全包唯一「使用者提供的字串會被當代碼求值」的地方，所以要明確它能做什麼、
 // 不能做什麼，並用測試把這些性質固定下來——否則將來有人順手給模板上下文加個
-// 方法、或在 FuncMap 里加個 readFile，能力面就靜默擴大了，而 diff 看起來
+// 方法、或在 FuncMap 裡加個 readFile，能力面就靜默擴大了，而 diff 看起來
 // 只是一個無害的小函式。
 
 // TestTemplateContextHasNoMethods 是最重要的一條。

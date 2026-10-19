@@ -2445,7 +2445,7 @@ function SourceTaskPicker({
 }
 
 // CategoryPicker 是新建任務裡的單選分類選擇器：可搜尋已有分類；輸入庫裡沒有的名稱後
-// 回車（或點下拉里的「建立」）即時新建分類並選中，選中項以可移除的 tag 展示。分類是
+// 回車（或點下拉裡的「建立」）即時新建分類並選中，選中項以可移除的 tag 展示。分類是
 // 全域資源，這裡即時建立與「分類管理」裡手動新建等價。只允許一個分類。
 function CategoryPicker({
   categories,
@@ -3301,7 +3301,7 @@ function CreateTaskSheet({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="weekly">按周</SelectItem>
+                          <SelectItem value="weekly">按週</SelectItem>
                           <SelectItem value="once">指定日期</SelectItem>
                         </SelectContent>
                       </Select>

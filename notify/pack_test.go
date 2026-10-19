@@ -190,7 +190,7 @@ func TestMarkdownEscapeBackslashFirst(t *testing.T) {
 }
 
 // TestTelegramTitleHasNoMarkdownEscapes 鎖住一個具體的迴歸：
-// markdown 轉義不能洩漏到 Telegram 的 HTML 輸出裡（曾經在共享的標題函數里
+// markdown 轉義不能洩漏到 Telegram 的 HTML 輸出裡（曾經在共享的標題函數裡
 // 加過轉義，結果 Telegram 訊息裡出現 `\(1\)` 這種可見反斜槓）。
 func TestTelegramTitleHasNoMarkdownEscapes(t *testing.T) {
 	m := Message{Items: []Item{{Severity: "high", Name: "alert(1) *重點*"}}}

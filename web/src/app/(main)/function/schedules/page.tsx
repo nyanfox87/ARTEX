@@ -319,7 +319,7 @@ function ScheduleForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">按周</SelectItem>
+              <SelectItem value="weekly">按週</SelectItem>
               <SelectItem value="once">指定日期</SelectItem>
             </SelectContent>
           </Select>

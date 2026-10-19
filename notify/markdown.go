@@ -17,7 +17,7 @@ const maxAssetsShown = 3
 const maxSummaryRunes = 120
 
 // markdownReservedBytes 預留給訊息頭部（彙總行 + 級別分佈 + 可能的截斷提示）
-// 與尾部（平臺連結）。按整條打包時把這部分從預算里扣掉，保證頭尾不會被截掉——
+// 與尾部（平臺連結）。按整條打包時把這部分從預算裡扣掉，保證頭尾不會被截掉——
 // 頭尾一旦被截，讀者連「這是哪一批、還有多少條沒顯示」都看不出來。
 const markdownReservedBytes = 320
 
@@ -68,7 +68,7 @@ func markdownText(s string, maxRunes int) string {
 // HTML、飛書卡片的 plain_text、以及通用 Webhook 的 JSON 與郵件主題。每個語境的
 // 轉義規則都不同（markdown 轉義塞進 HTML 會留下可見的反斜槓，塞進 JSON 會汙染
 // 資料），所以轉義必須由各自的輸出端負責，見 writeItem / feishuItemLines /
-// telegramEscape。曾經在共享函數里加過 markdown 轉義，結果 Telegram 訊息裡
+// telegramEscape。曾經在共享函數裡加過 markdown 轉義，結果 Telegram 訊息裡
 // 出現了 `\(1\)` 這種可見的反斜槓。
 func markdownTitle(m Message) string {
 	if m.Batch {

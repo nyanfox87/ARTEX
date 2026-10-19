@@ -67,7 +67,7 @@ var credentialCases = []struct {
 	},
 }
 
-// leakProbeToken 是一個絕不可能是真實憑據的哨兵值，用於在錯誤文本里搜它。
+// leakProbeToken 是一個絕不可能是真實憑據的哨兵值，用於在錯誤文本裡搜它。
 const leakProbeToken = "LEAKPROBE0123456789abcdef"
 
 // TestChannelErrorsNeverLeakCredentials 是核心不變數。

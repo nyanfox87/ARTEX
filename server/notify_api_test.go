@@ -733,7 +733,7 @@ func TestNotifyNoDeepLinkWithoutBaseURL(t *testing.T) {
 func TestNotifyDigestSegmentsAndDefersRemainder(t *testing.T) {
 	f := newNotifyFixture(t)
 	hook := newFakeWebhook(t)
-	// 用企業微信：markdown 上限 4096 位元組，是六個渠道里最緊的。
+	// 用企業微信：markdown 上限 4096 位元組，是六個渠道裡最緊的。
 	chID := f.createChannel(t, map[string]any{
 		"name":   "分段彙總",
 		"kind":   notify.KindWeCom,

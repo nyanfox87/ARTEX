@@ -189,8 +189,8 @@ func (s *Server) admitTaskWhenScheduled(t *Task, mode string, requirePaused, sch
 	// this ordering, its already-running worker loops can claim the newly-opened
 	// intent in the gap between status=running and queued=true.
 	if shouldQueue || wasTerminal || wasPaused || wasQueued {
-		s.engine.Pause(t.ID, agent.Causef("queued_for_admission", "任務等待執行准入",
-			"任務正在等待併發佇列或准入狀態提交，本次執行已停止；只有獲得執行槽後才會重新領取意圖"))
+		s.engine.Pause(t.ID, agent.Causef("queued_for_admission", "任務等待執行準入",
+			"任務正在等待併發佇列或準入狀態提交，本次執行已停止；只有獲得執行槽後才會重新領取意圖"))
 	}
 
 	status := lifecycle.Status

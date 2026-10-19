@@ -88,7 +88,7 @@ func normalizeScheduleInput(in TaskScheduleInput) (TaskScheduleInput, error) {
 		return in, fmt.Errorf("時區必須選擇北京時間或系統當前時區")
 	}
 	if in.ScheduleType != "once" && in.ScheduleType != "weekly" {
-		return in, fmt.Errorf("規則必須選擇一次性或按周")
+		return in, fmt.Errorf("規則必須選擇一次性或按週")
 	}
 	if _, err := time.Parse("15:04", in.StartTime); err != nil {
 		return in, fmt.Errorf("開始時間格式不正確，請使用 HH:MM")
@@ -127,7 +127,7 @@ func normalizeScheduleInput(in TaskScheduleInput) (TaskScheduleInput, error) {
 			seen[day] = true
 		}
 		if len(in.Weekdays) == 0 {
-			return in, fmt.Errorf("按周計劃至少選擇一天")
+			return in, fmt.Errorf("按週計劃至少選擇一天")
 		}
 		sort.Ints(in.Weekdays)
 		in.RunDate = ""

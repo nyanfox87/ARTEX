@@ -116,7 +116,7 @@ func dingTalkSignedURL(hook, secret string, now time.Time) (string, error) {
 
 	u, err := url.Parse(hook)
 	if err != nil {
-		// 不透傳 err：url.Parse 的錯誤文本里帶完整地址（含 access_token）。
+		// 不透傳 err：url.Parse 的錯誤文本裡帶完整地址（含 access_token）。
 		return "", fmt.Errorf("解析 Webhook 地址失敗: %s", redactRequestTarget(hook))
 	}
 	q := u.Query()

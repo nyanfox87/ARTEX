@@ -175,8 +175,8 @@ func smtpStageError(what string, err error) error {
 	return fmt.Errorf("%s: %w", what, err)
 }
 
-// smtpReplyCode 從 SMTP 錯誤文本里取前導的三位應答碼，取不到返回 0。
-// net/smtp 不匯出錯誤碼欄位，只能從文本里取；格式為「450 4.7.1 ...」。
+// smtpReplyCode 從 SMTP 錯誤文本裡取前導的三位應答碼，取不到返回 0。
+// net/smtp 不匯出錯誤碼欄位，只能從文本裡取；格式為「450 4.7.1 ...」。
 func smtpReplyCode(text string) int {
 	if len(text) < 3 {
 		return 0

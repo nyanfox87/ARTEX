@@ -465,7 +465,7 @@ func TestEmailSMTPErrorClassification(t *testing.T) {
 }
 
 func TestRegistryCoversAllKinds(t *testing.T) {
-	// 六個渠道缺一不可——少一個會在 UI 下拉里靜默消失。
+	// 六個渠道缺一不可——少一個會在 UI 下拉裡靜默消失。
 	want := []string{KindDingTalk, KindEmail, KindFeishu, KindTelegram, KindWebhook, KindWeCom}
 	got := Kinds()
 	if len(got) != len(want) {

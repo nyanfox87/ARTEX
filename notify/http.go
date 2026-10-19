@@ -142,7 +142,7 @@ func doJSON(ctx context.Context, method, url string, headers map[string]string, 
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		// URL 非法——多半是使用者把地址填錯了，屬於永久失敗。
-		// 這裡同樣不能透傳 err：url.Parse 的錯誤文本里含完整地址。
+		// 這裡同樣不能透傳 err：url.Parse 的錯誤文本裡含完整地址。
 		return nil, Permanent(fmt.Errorf("請求地址非法: %s", redactRequestTarget(url)))
 	}
 	if payload != nil {
@@ -231,7 +231,7 @@ func redactTransportError(err error) string {
 	return redactURLsInText(err.Error())
 }
 
-// redactURLsInText 把一段文本里出現的 http(s) 地址替換成脫敏形態。
+// redactURLsInText 把一段文本裡出現的 http(s) 地址替換成脫敏形態。
 //
 // 用於兜底那些拿不到結構化欄位的錯誤（重定向策略錯誤、第三方庫的自定義錯誤）。
 // 只識別 http/https 字首，按空白與引號切分——地址不會包含這兩類字元。
