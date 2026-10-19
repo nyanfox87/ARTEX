@@ -77,12 +77,12 @@ func (s *Server) listSchedules(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getSchedule(w http.ResponseWriter, r *http.Request) {
 	id, err := parseScheduleID(r)
 	if err != nil {
-		writeErr(w, 400, "计划编号无效")
+		writeErr(w, 400, "計劃編號無效")
 		return
 	}
 	item, err := s.m.pg.GetTaskSchedule(id)
 	if err != nil {
-		writeErr(w, 404, "计划不存在")
+		writeErr(w, 404, "計劃不存在")
 		return
 	}
 	history, err := s.m.pg.ListScheduleHistory(id)
@@ -127,12 +127,12 @@ func (s *Server) createSchedule(w http.ResponseWriter, r *http.Request) {
 func (s *Server) updateSchedule(w http.ResponseWriter, r *http.Request) {
 	id, err := parseScheduleID(r)
 	if err != nil {
-		writeErr(w, 400, "计划编号无效")
+		writeErr(w, 400, "計劃編號無效")
 		return
 	}
 	old, err := s.m.pg.GetTaskSchedule(id)
 	if err != nil {
-		writeErr(w, 404, "计划不存在")
+		writeErr(w, 404, "計劃不存在")
 		return
 	}
 	req, err := decodeSchedule(r)
@@ -151,7 +151,7 @@ func (s *Server) updateSchedule(w http.ResponseWriter, r *http.Request) {
 func (s *Server) deleteSchedule(w http.ResponseWriter, r *http.Request) {
 	id, err := parseScheduleID(r)
 	if err != nil {
-		writeErr(w, 400, "计划编号无效")
+		writeErr(w, 400, "計劃編號無效")
 		return
 	}
 	if err := s.m.pg.DeleteTaskSchedule(id); err != nil {
@@ -164,7 +164,7 @@ func (s *Server) deleteSchedule(w http.ResponseWriter, r *http.Request) {
 func (s *Server) setScheduleEnabled(w http.ResponseWriter, r *http.Request, enabled bool) {
 	id, err := parseScheduleID(r)
 	if err != nil {
-		writeErr(w, 400, "计划编号无效")
+		writeErr(w, 400, "計劃編號無效")
 		return
 	}
 	if err := s.m.pg.SetTaskScheduleEnabled(id, enabled); err != nil {
@@ -191,19 +191,19 @@ func (s *Server) resumeSchedule(w http.ResponseWriter, r *http.Request) {
 func (s *Server) runScheduleNow(w http.ResponseWriter, r *http.Request) {
 	id, err := parseScheduleID(r)
 	if err != nil {
-		writeErr(w, 400, "计划编号无效")
+		writeErr(w, 400, "計劃編號無效")
 		return
 	}
 	item, err := s.m.pg.GetTaskSchedule(id)
 	if err != nil {
-		writeErr(w, 404, "计划不存在")
+		writeErr(w, 404, "計劃不存在")
 		return
 	}
 	if err := s.m.pg.MarkTaskScheduleManual(id); err != nil {
-		writeErr(w, 500, "无法启动计划任务")
+		writeErr(w, 500, "無法啟動計劃任務")
 		return
 	}
-	_ = s.m.pg.RecordScheduleHistory(id, 0, "running", true, "手动立即运行")
+	_ = s.m.pg.RecordScheduleHistory(id, 0, "running", true, "手動立即執行")
 	started, errors := s.runScheduleTasksNow(item)
 	writeJSON(w, 200, map[string]any{"ok": true, "started": started, "errors": errors})
 }
@@ -222,12 +222,12 @@ func (s *Server) startScheduleTasks(item *db.TaskSchedule, forceManualPause bool
 	for _, taskID := range item.TaskIDs {
 		t, ok := s.m.Task(strconv.FormatInt(taskID, 10))
 		if !ok {
-			errors = append(errors, fmt.Sprintf("任务 #%d 未找到", taskID))
+			errors = append(errors, fmt.Sprintf("任務 #%d 未找到", taskID))
 			continue
 		}
 		state := t.lifecycleSnapshot()
 		if db.IsTerminal(state.Status) {
-			errors = append(errors, fmt.Sprintf("任务 #%d 已结束，无法立即运行", taskID))
+			errors = append(errors, fmt.Sprintf("任務 #%d 已結束，無法立即執行", taskID))
 			continue
 		}
 		if !state.Paused {
@@ -236,26 +236,26 @@ func (s *Server) startScheduleTasks(item *db.TaskSchedule, forceManualPause bool
 		}
 		managed, err := s.m.pg.TaskPausedBySchedule(taskID)
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("任务 #%d 状态读取失败", taskID))
-			_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", false, "状态读取失败")
+			errors = append(errors, fmt.Sprintf("任務 #%d 狀態讀取失敗", taskID))
+			_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", false, "狀態讀取失敗")
 			continue
 		}
 		if !managed && !forceManualPause {
-			errors = append(errors, fmt.Sprintf("任务 #%d 由人工暂停，计划不能强制恢复", taskID))
-			_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", false, "人工暂停优先")
+			errors = append(errors, fmt.Sprintf("任務 #%d 由人工暫停，計劃不能強制恢復", taskID))
+			_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", false, "人工暫停優先")
 			continue
 		}
 		_, err = s.applyTaskControlWithCause(t, "resume", agent.AbortPausedByOrchestrator)
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("任务 #%d：%s", taskID, err.Error()))
+			errors = append(errors, fmt.Sprintf("任務 #%d：%s", taskID, err.Error()))
 			_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", false, err.Error())
 			continue
 		}
 		started++
 		_ = s.m.pg.SetSchedulePaused(item.ID, taskID, false)
-		message := "立即运行"
+		message := "立即執行"
 		if !managed && forceManualPause {
-			message = "立即运行（显式恢复人工暂停）"
+			message = "立即執行（顯式恢復人工暫停）"
 		}
 		_ = s.m.pg.RecordScheduleHistory(item.ID, taskID, "resume", true, message)
 	}

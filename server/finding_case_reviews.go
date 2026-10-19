@@ -31,11 +31,11 @@ func (s *Server) isHistoricalFindingReview(conv int64) (bool, error) {
 
 func (s *Server) toolCompleteFindingCaseReview() actool.CoreTool {
 	decision := objSchema(map[string]any{
-		"finding_id":          idParam("所选独立漏洞记录 ID"),
+		"finding_id":          idParam("所選獨立漏洞記錄 ID"),
 		"verdict":             map[string]any{"type": "string", "enum": []string{"independent", "merged", "suggested"}},
-		"reason":              strParam("判断理由，接口或读写影响不同不能单独证明不同根因"),
-		"root_cause_evidence": strParam("原始报告/证据中支持实际共同或不同根因的具体材料；不确定则说明缺失证据及已保存建议")}, "finding_id", "verdict", "reason", "root_cause_evidence")
-	return wrTool("complete_finding_case_review", "历史整理结束前提交每条所选记录的根因判断并验收：必须已读取全部记录，疑似必须已有建议，归并必须已有完整最新统一报告。验收失败不能宣布完成。", objSchema(map[string]any{"summary": strParam("整理结果总结"), "decisions": map[string]any{"type": "array", "items": decision}}, "summary", "decisions"), func(ctx context.Context, raw json.RawMessage) (actool.Result, error) {
+		"reason":              strParam("判斷理由，介面或讀寫影響不同不能單獨證明不同根因"),
+		"root_cause_evidence": strParam("原始報告/證據中支援實際共同或不同根因的具體材料；不確定則說明缺失證據及已儲存建議")}, "finding_id", "verdict", "reason", "root_cause_evidence")
+	return wrTool("complete_finding_case_review", "歷史整理結束前提交每條所選記錄的根因判斷並驗收：必須已讀取全部記錄，疑似必須已有建議，歸併必須已有完整最新統一報告。驗收失敗不能宣佈完成。", objSchema(map[string]any{"summary": strParam("整理結果總結"), "decisions": map[string]any{"type": "array", "items": decision}}, "summary", "decisions"), func(ctx context.Context, raw json.RawMessage) (actool.Result, error) {
 		var a findingReviewConclusion
 		if err := json.Unmarshal(raw, &a); err != nil {
 			return actool.Errorf(err.Error()), nil
@@ -44,13 +44,13 @@ func (s *Server) toolCompleteFindingCaseReview() actool.CoreTool {
 		if err := s.saveFindingReviewConclusion(ctx, conv, a); err != nil {
 			return actool.Errorf(err.Error()), nil
 		}
-		return actool.Text("历史整理验收通过；原始记录和报告保留，逐条根因判断已保存。"), nil
+		return actool.Text("歷史整理驗收通過；原始記錄和報告保留，逐條根因判斷已儲存。"), nil
 	})
 }
 
 func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a findingReviewConclusion) error {
 	if conv <= 0 {
-		return errors.New("仅用于有上下文的历史整理会话")
+		return errors.New("僅用於有上下文的歷史整理會話")
 	}
 	return s.m.pg.WithEvidenceTx(ctx, func(tx *sql.Tx) error {
 		var idsRaw, readsRaw json.RawMessage
@@ -59,7 +59,7 @@ func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a 
 			return err
 		}
 		if state != "running" {
-			return errors.New("整理会话未运行，不能提交验收")
+			return errors.New("整理會話未執行，不能提交驗收")
 		}
 		var ids, reads []int64
 		if err := json.Unmarshal(idsRaw, &ids); err != nil {
@@ -75,20 +75,20 @@ func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a 
 		decisions := map[int64]findingReviewDecision{}
 		for _, d := range a.Decisions {
 			if _, ok := decisions[d.FindingID]; ok {
-				return errors.New("重复的判断编号")
+				return errors.New("重複的判斷編號")
 			}
 			decisions[d.FindingID] = d
 		}
 		if strings.TrimSpace(a.Summary) == "" || len(ids) != len(decisions) {
-			return errors.New("须提供总结和覆盖全部所选记录的逐条判断")
+			return errors.New("須提供總結和覆蓋全部所選記錄的逐條判斷")
 		}
 		for _, id := range ids {
 			d, ok := decisions[id]
 			if !ok || !read[id] {
-				return fmt.Errorf("请先 get_finding_record 读取并判断所选记录 #%d", id)
+				return fmt.Errorf("請先 get_finding_record 讀取並判斷所選記錄 #%d", id)
 			}
 			if strings.TrimSpace(d.Reason) == "" || strings.TrimSpace(d.RootCauseEvidence) == "" {
-				return fmt.Errorf("记录 #%d 缺少判断理由或根因证据", id)
+				return fmt.Errorf("記錄 #%d 缺少判斷理由或根因證據", id)
 			}
 			var cid sql.NullInt64
 			if err := tx.QueryRow(`SELECT m.case_id FROM findings f LEFT JOIN finding_case_members m ON m.finding_id=f.id WHERE f.id=$1`, id).Scan(&cid); err != nil {
@@ -97,7 +97,7 @@ func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a 
 			switch d.Verdict {
 			case "merged":
 				if !cid.Valid {
-					return fmt.Errorf("记录 #%d 尚未归并", id)
+					return fmt.Errorf("記錄 #%d 尚未歸併", id)
 				}
 			case "suggested":
 				var pending bool
@@ -105,14 +105,14 @@ func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a 
 					return err
 				}
 				if !pending {
-					return fmt.Errorf("记录 #%d 须先保存待确认建议", id)
+					return fmt.Errorf("記錄 #%d 須先儲存待確認建議", id)
 				}
 			case "independent":
 				if cid.Valid {
-					return fmt.Errorf("记录 #%d 已在文件夹中，不能声明为独立", id)
+					return fmt.Errorf("記錄 #%d 已在資料夾中，不能宣告為獨立", id)
 				}
 			default:
-				return errors.New("无效判断类型")
+				return errors.New("無效判斷型別")
 			}
 			if cid.Valid {
 				var report string
@@ -122,7 +122,7 @@ func (s *Server) saveFindingReviewConclusion(ctx context.Context, conv int64, a 
 					return err
 				}
 				if !active || rv != version {
-					return fmt.Errorf("文件夹 #%d 的统一报告待更新，请重新读取后更新", cid.Int64)
+					return fmt.Errorf("資料夾 #%d 的統一報告待更新，請重新讀取後更新", cid.Int64)
 				}
 				if err := validateUnifiedFindingReport(report); err != nil {
 					return err
@@ -148,7 +148,7 @@ func (s *Server) validateFindingReviewCompletion(conv int64) error {
 		return err
 	}
 	if len(a.Decisions) == 0 {
-		return errors.New("整理未通过验收：未提交 complete_finding_case_review 逐条根因判断；请查看执行记录")
+		return errors.New("整理未通過驗收：未提交 complete_finding_case_review 逐條根因判斷；請檢視執行記錄")
 	}
 	// Recheck after the last model turn; concurrent evidence changes invalidate completion.
 	return s.saveFindingReviewConclusion(context.Background(), conv, a)
@@ -157,8 +157,8 @@ func (s *Server) validateFindingReviewCompletion(conv int64) error {
 // Require substantive sections and balanced fenced blocks. This validates report
 // completeness, not the truth of a model's root-cause claim or a live exploit.
 func validateUnifiedFindingReport(report string) error {
-	aliases := [][]string{{"概述", "overview", "summary"}, {"影响", "impact"}, {"前置", "prerequisite", "precondition"}, {"复现", "reproduction", "reproduce"}, {"证据", "evidence"}, {"poc", "完整脚本", "验证脚本", "proof of concept"}, {"根因", "root cause"}, {"修复", "remediation", "recommendation", "fix"}}
-	names := []string{"概述", "影响", "前置条件", "复现步骤", "证据", "PoC", "根因分析", "修复建议"}
+	aliases := [][]string{{"概述", "overview", "summary"}, {"影響", "impact"}, {"前置", "prerequisite", "precondition"}, {"重現", "reproduction", "reproduce"}, {"證據", "evidence"}, {"poc", "完整指令碼", "驗證指令碼", "proof of concept"}, {"根因", "root cause"}, {"修復", "remediation", "recommendation", "fix"}}
+	names := []string{"概述", "影響", "前置條件", "重現步驟", "證據", "PoC", "根因分析", "修復建議"}
 	found := make([]bool, len(aliases))
 	current := -1
 	hasContent := false
@@ -217,7 +217,7 @@ func validateUnifiedFindingReport(report string) error {
 	}
 	finish()
 	if fence != "" {
-		return errors.New("统一报告代码块未闭合，可能截断；请补全后再保存")
+		return errors.New("統一報告程式碼塊未閉合，可能截斷；請補全後再儲存")
 	}
 	missing := []string{}
 	for i, ok := range found {
@@ -226,7 +226,7 @@ func validateUnifiedFindingReport(report string) error {
 		}
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("统一报告缺少有内容的章节：%s；请补全后保存", strings.Join(missing, "、"))
+		return fmt.Errorf("統一報告缺少有內容的章節：%s；請補全後儲存", strings.Join(missing, "、"))
 	}
 	return nil
 }

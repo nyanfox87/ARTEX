@@ -27,7 +27,7 @@ interface FindingRetestDialogProps {
   onStarted?: (retest: FindingRetest) => void;
 }
 
-// 仅在打开时挂载，关闭后清空说明；列表与详情共用提交锁及错误处理，启动后留在当前页。
+// 僅在開啟時掛載，關閉後清空說明；列表與詳情共用提交鎖及錯誤處理，啟動後留在當前頁。
 export function FindingRetestDialog({ findingId, findingName, onClose, onStarted }: FindingRetestDialogProps) {
   const notesId = React.useId();
   const [notes, setNotes] = React.useState("");
@@ -42,9 +42,9 @@ export function FindingRetestDialog({ findingId, findingName, onClose, onStarted
       const result = await api.startFindingRetest(findingId, notes.trim());
       onStarted?.(result.retest);
       onClose();
-      toast.success(result.created ? "复测已启动，可点击「复测中」查看会话" : "该漏洞正在复测，可查看已有会话");
+      toast.success(result.created ? "複測已啟動，可點選「複測中」檢視會話" : "該漏洞正在複測，可檢視已有會話");
     } catch (e) {
-      toast.error(`发起复测失败：${(e as Error).message}`);
+      toast.error(`發起複測失敗：${(e as Error).message}`);
     } finally {
       submitLock.current = false;
       setSubmitting(false);
@@ -55,16 +55,16 @@ export function FindingRetestDialog({ findingId, findingName, onClose, onStarted
     <Dialog open onOpenChange={(open) => !open && !submitLock.current && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>复测漏洞 #{findingId}</DialogTitle>
+          <DialogTitle>複測漏洞 #{findingId}</DialogTitle>
           <DialogDescription className="break-words">
             {findingName ? <span className="mb-2 block">{findingName}</span> : null}
-            复测 Agent
-            将读取原证据和测试约束，在独立会话中执行针对性验证。复测成功完成且确认修复后，漏洞状态自动改为「已修复」，其他结论保留原状态。
+            複測 Agent
+            將讀取原證據和測試約束，在獨立會話中執行針對性驗證。複測成功完成且確認修復後，漏洞狀態自動改為「已修復」，其他結論保留原狀態。
           </DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <Field data-disabled={submitting}>
-            <FieldLabel htmlFor={notesId}>补充说明（可选）</FieldLabel>
+            <FieldLabel htmlFor={notesId}>補充說明（可選）</FieldLabel>
             <Textarea
               id={notesId}
               value={notes}
@@ -72,9 +72,9 @@ export function FindingRetestDialog({ findingId, findingName, onClose, onStarted
               rows={4}
               disabled={submitting}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="例如：使用原测试账号验证原接口；修复版本为 v2。"
+              placeholder="例如：使用原測試帳號驗證原介面；修復版本為 v2。"
             />
-            <FieldDescription>可补充修复版本、测试条件或本次限制。</FieldDescription>
+            <FieldDescription>可補充修復版本、測試條件或本次限制。</FieldDescription>
           </Field>
         </FieldGroup>
         <DialogFooter>
@@ -83,7 +83,7 @@ export function FindingRetestDialog({ findingId, findingName, onClose, onStarted
           </Button>
           <Button disabled={submitting} onClick={() => void start()}>
             {submitting ? <Spinner data-icon="inline-start" /> : <RotateCcwIcon data-icon="inline-start" />}
-            {submitting ? "正在创建…" : "开始复测"}
+            {submitting ? "正在建立…" : "開始複測"}
           </Button>
         </DialogFooter>
       </DialogContent>

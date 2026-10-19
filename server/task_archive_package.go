@@ -503,7 +503,7 @@ func stageTaskArchivePackageDelete(archivePath string, archiveID int64) (string,
 	staged := archivePath + fmt.Sprintf(".deleting-%d", archiveID)
 	if _, err := os.Lstat(staged); err == nil {
 		if _, originalErr := os.Lstat(archivePath); originalErr == nil {
-			return staged, false, errors.New("归档包原文件和删除暂存文件同时存在")
+			return staged, false, errors.New("歸檔包原檔案和刪除暫存檔案同時存在")
 		} else if !os.IsNotExist(originalErr) {
 			return staged, false, originalErr
 		}
@@ -578,10 +578,10 @@ func writeTaskArchivePackage(path, payloadDir string, snapshot *pgdb.TaskArchive
 			return err
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
-			// 归档格式端到端只支持普通文件与目录（解包端对其它类型直接报错），
-			// 无法还原符号链接。跳过而非整包失败：不读取链接目标(lstat，不越出目录树)，
-			// 也不写入 symlink 条目；链接指向树内时目标文件本身仍会被单独遍历归档。
-			log.Printf("[task-archive] 跳过符号链接（归档不支持，不影响其它文件）：%s", current)
+			// 歸檔格式端到端只支援普通檔案與目錄（解包端對其它型別直接報錯），
+			// 無法還原符號連結。跳過而非整包失敗：不讀取連結目標(lstat，不越出目錄樹)，
+			// 也不寫入 symlink 條目；連結指向樹內時目標檔案本身仍會被單獨遍歷歸檔。
+			log.Printf("[task-archive] 跳過符號連結（歸檔不支援，不影響其它檔案）：%s", current)
 			return nil
 		}
 		header, err := tar.FileInfoHeader(info, "")

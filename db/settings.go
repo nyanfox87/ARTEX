@@ -33,10 +33,10 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, key
 	return err
 }
 
-// InsertSettingIfAbsent 只在 key 尚未存在时写入，已存在则原样保留并返回 inserted=false。
-// 给 auth.password_hash 这类"只允许首次设置"的键用：判定落在数据库的主键约束上，
-// 调用方先 GetSetting 再写的那种检查就只是快速失败路径——读出错或并发撞车时，
-// 已有的值也不会被 ON CONFLICT DO UPDATE 顺手覆盖掉。
+// InsertSettingIfAbsent 只在 key 尚未存在時寫入，已存在則原樣保留並返回 inserted=false。
+// 給 auth.password_hash 這類"只允許首次設定"的鍵用：判定落在資料庫的主鍵約束上，
+// 呼叫方先 GetSetting 再寫的那種檢查就只是快速失敗路徑——讀出錯或併發撞車時，
+// 已有的值也不會被 ON CONFLICT DO UPDATE 順手覆蓋掉。
 func (d *DB) InsertSettingIfAbsent(key, value string) (inserted bool, err error) {
 	res, err := d.Exec(`
 INSERT INTO settings(key, value) VALUES ($1, $2)

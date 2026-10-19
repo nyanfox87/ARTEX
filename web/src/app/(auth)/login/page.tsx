@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [readToEnd, setReadToEnd] = useState(false);
   const termsBodyRef = useRef<HTMLDivElement>(null);
 
-  // 滚动到条款底部（含无需滚动即可完整展示的情况）方可点击「同意」。
+  // 滾動到條款底部（含無需滾動即可完整展示的情況）方可點選「同意」。
   function handleTermsScroll() {
     const el = termsBodyRef.current;
     if (!el) return;
@@ -34,18 +34,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!termsOpen) return;
-    // 打开时重置，并处理内容本就不足一屏、无法触发滚动的场景。
+    // 開啟時重置，並處理內容本就不足一屏、無法觸發滾動的場景。
     setReadToEnd(false);
     const el = termsBodyRef.current;
     if (el && el.scrollHeight <= el.clientHeight + 8) setReadToEnd(true);
   }, [termsOpen]);
 
   useEffect(() => {
-    // 已登录直接进主界面（静态导出下无 middleware 代劳这层跳转）。
+    // 已登入直接進主介面（靜態匯出下無 middleware 代勞這層跳轉）。
     const token = auth.getToken();
     if (token) {
-      // localStorage 可能仍有凭据但 cookie 已丢失。先同步，再发起全新请求，
-      // 避免服务端守卫或路由缓存把跳转送回仍处于 checking 状态的登录页。
+      // localStorage 可能仍有憑據但 cookie 已丟失。先同步，再發起全新請求，
+      // 避免服務端守衛或路由快取把跳轉送回仍處於 checking 狀態的登入頁。
       auth.setToken(token);
       window.location.replace("/function/tasks");
       return;
@@ -55,14 +55,14 @@ export default function LoginPage() {
       .then(({ initialized }) => {
         if (!initialized) router.replace("/setup");
       })
-      .catch(() => setError("无法连接到后端服务"))
+      .catch(() => setError("無法連線到後端服務"))
       .finally(() => setChecking(false));
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!agreed) {
-      setError("请先阅读并同意《使用须知》");
+      setError("請先閱讀並同意《使用須知》");
       return;
     }
     setLoading(true);
@@ -72,7 +72,7 @@ export default function LoginPage() {
       auth.setToken(token);
       window.location.replace("/function/tasks");
     } catch {
-      setError("用户名或密码错误");
+      setError("使用者名稱或密碼錯誤");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function LoginPage() {
   if (checking) {
     return (
       <div role="status" className="flex min-h-dvh items-center justify-center text-muted-foreground">
-        正在检查登录状态…
+        正在檢查登入狀態…
       </div>
     );
   }
@@ -103,22 +103,22 @@ export default function LoginPage() {
       <div className="flex w-full items-center justify-center bg-background p-8 lg:w-2/3">
         <div className="w-full max-w-md space-y-10 py-24 lg:py-32">
           <div className="space-y-4 text-center">
-            <h2 className="text-2xl font-medium tracking-tight">登录</h2>
-            <p className="mx-auto max-w-xl text-muted-foreground">欢迎回来，请输入密码以继续使用 ARTEX</p>
+            <h2 className="text-2xl font-medium tracking-tight">登入</h2>
+            <p className="mx-auto max-w-xl text-muted-foreground">歡迎回來，請輸入密碼以繼續使用 ARTEX</p>
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="username">用户名</Label>
+              <Label htmlFor="username">使用者名稱</Label>
               <Input id="username" value="ARTEX" readOnly className="bg-muted text-muted-foreground" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">密码</Label>
+              <Label htmlFor="password">密碼</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码"
+                placeholder="請輸入密碼"
                 autoFocus
                 autoComplete="current-password"
               />
@@ -131,19 +131,19 @@ export default function LoginPage() {
                 className="mt-0.5"
               />
               <Label htmlFor="agree-terms" className="text-sm font-normal leading-relaxed text-muted-foreground">
-                我已阅读并同意
+                我已閱讀並同意
                 <button
                   type="button"
                   onClick={() => setTermsOpen(true)}
                   className="mx-0.5 font-medium text-primary underline-offset-4 hover:underline"
                 >
-                  《使用须知》
+                  《使用須知》
                 </button>
               </Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading || !password || !agreed}>
-              {loading ? "登录中..." : "登录"}
+              {loading ? "登入中..." : "登入"}
             </Button>
           </form>
         </div>
@@ -156,9 +156,9 @@ export default function LoginPage() {
               <ShieldCheck className="size-5" />
             </div>
             <div className="space-y-0.5">
-              <DialogTitle className="text-base">ARTEX 使用须知与免责声明</DialogTitle>
+              <DialogTitle className="text-base">ARTEX 使用須知與免責宣告</DialogTitle>
               <p className="text-xs text-muted-foreground">
-                版本 v1.0 · 生效日期 2026-09-18 · 请在登录前完整阅读以下全部条款
+                版本 v1.0 · 生效日期 2026-09-18 · 請在登入前完整閱讀以下全部條款
               </p>
             </div>
           </DialogHeader>
@@ -169,11 +169,11 @@ export default function LoginPage() {
             className="max-h-[60vh] space-y-5 overflow-y-auto px-6 py-5 text-sm leading-relaxed text-muted-foreground"
           >
             <p className="rounded-lg border bg-muted/40 p-3 text-foreground/80">
-              本《使用须知与免责声明》（以下简称"本声明"）是您与 ARTEX
-              项目作者及贡献者之间就使用本软件所达成的约定。请您在使用前审慎阅读、充分理解各条款内容，特别是以粗体或色块标注的免责、责任限制及禁止性条款。
+              本《使用須知與免責宣告》（以下簡稱"本宣告"）是您與 ARTEX
+              專案作者及貢獻者之間就使用本軟體所達成的約定。請您在使用前審慎閱讀、充分理解各條款內容，特別是以粗體或色塊標註的免責、責任限制及禁止性條款。
               <span className="font-medium text-foreground">
                 {" "}
-                一旦您下载、安装、访问或以任何方式使用本软件，即视为您已阅读、理解并同意接受本声明的全部约束。
+                一旦您下載、安裝、訪問或以任何方式使用本軟體，即視為您已閱讀、理解並同意接受本宣告的全部約束。
               </span>
             </p>
 
@@ -182,12 +182,12 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   1
                 </span>
-                第一条 · 定义与开源许可
+                第一條 · 定義與開源許可
               </h4>
               <p className="pl-7">
-                本软件（ARTEX）是一款基于 GNU Affero General Public License
-                v3.0（AGPL-3.0）发布的开源程序。您可依据该协议自由使用、复制、修改和分发本软件；但任何衍生作品（包括通过网络向第三方提供的在线服务）均须同样以
-                AGPL-3.0 协议开源并向使用者公开对应的完整源代码。AGPL-3.0 完整条款以随附的 LICENSE 文件为准。
+                本軟體（ARTEX）是一款基於 GNU Affero General Public License
+                v3.0（AGPL-3.0）釋出的開源程式。您可依據該協議自由使用、複製、修改和分發本軟體；但任何衍生作品（包括通過網路向第三方提供的線上服務）均須同樣以
+                AGPL-3.0 協議開源並向使用者公開對應的完整原始碼。AGPL-3.0 完整條款以隨附的 LICENSE 檔案為準。
               </p>
             </section>
 
@@ -196,10 +196,10 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   2
                 </span>
-                第二条 · 授权使用范围
+                第二條 · 授權使用範圍
               </h4>
               <p className="pl-7">
-                本软件仅供个人学习、代码研究、安全技术原理探讨，以及在您自行搭建的本地隔离环境中进行技术验证之用，适用于学习、学术研究、代码审阅等非攻击性、非破坏性用途。除本条明确许可的情形外，您不得将本软件用于任何其他目的。
+                本軟體僅供個人學習、程式碼研究、安全技術原理探討，以及在您自行搭建的本地隔離環境中進行技術驗證之用，適用於學習、學術研究、程式碼審閱等非攻擊性、非破壞性用途。除本條明確許可的情形外，您不得將本軟體用於任何其他目的。
               </p>
             </section>
 
@@ -209,16 +209,16 @@ export default function LoginPage() {
                   3
                 </span>
                 <AlertTriangle className="size-4" />
-                第三条 · 禁止行为
+                第三條 · 禁止行為
               </h4>
               <ul className="ml-7 list-decimal space-y-1.5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 pl-8 text-foreground/80 marker:text-destructive/70">
                 <li>
-                  严禁对任何网站、线上服务、他人或第三方所有的联网系统发起扫描、探测、利用或攻击（无论是否已获得授权、是否为您自有资产）；
+                  嚴禁對任何網站、線上服務、他人或第三方所有的聯網系統發起掃描、探測、利用或攻擊（無論是否已獲得授權、是否為您自有資產）；
                 </li>
-                <li>严禁将本软件用于任何实际的渗透测试、攻防对抗、红蓝演练或生产环境；</li>
-                <li>严禁将本软件用于非法入侵、数据窃取、勒索、拒绝服务（DoS/DDoS）或任何破坏性、犯罪性活动；</li>
-                <li>严禁移除、篡改或规避本软件及其输出中的任何版权、许可或安全提示信息；</li>
-                <li>严禁从事任何违反您所在国家或地区法律、法规及监管规定的行为。</li>
+                <li>嚴禁將本軟體用於任何實際的滲透測試、攻防對抗、紅藍演練或生產環境；</li>
+                <li>嚴禁將本軟體用於非法入侵、資料竊取、勒索、拒絕服務（DoS/DDoS）或任何破壞性、犯罪性活動；</li>
+                <li>嚴禁移除、篡改或規避本軟體及其輸出中的任何版權、許可或安全提示資訊；</li>
+                <li>嚴禁從事任何違反您所在國家或地區法律、法規及監管規定的行為。</li>
               </ul>
             </section>
 
@@ -227,11 +227,11 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   4
                 </span>
-                第四条 · 知识产权
+                第四條 · 智慧財產權
               </h4>
               <p className="pl-7">
-                本软件的著作权及相关知识产权归项目作者及贡献者所有，并在 AGPL-3.0
-                协议约定的范围内向您授予相应权利。除该协议明确授予的权利外，本声明未以明示或默示方式授予您任何其他权利。
+                本軟體的著作權及相關智慧財產權歸專案作者及貢獻者所有，並在 AGPL-3.0
+                協議約定的範圍內向您授予相應權利。除該協議明確授予的權利外，本宣告未以明示或默示方式授予您任何其他權利。
               </p>
             </section>
 
@@ -240,10 +240,10 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   5
                 </span>
-                第五条 · 数据与隐私
+                第五條 · 資料與隱私
               </h4>
               <p className="pl-7">
-                本软件为可自行部署的开源程序，作者不运营任何集中式服务、亦不会收集或上传您的使用数据。您在使用过程中产生、处理或接触的一切数据，均由您自行掌控并负责其合法性与安全性；因数据处理不当引发的任何后果由您自行承担。
+                本軟體為可自行部署的開源程式，作者不運營任何集中式服務、亦不會收集或上傳您的使用資料。您在使用過程中產生、處理或接觸的一切資料，均由您自行掌控並負責其合法性與安全性；因資料處理不當引發的任何後果由您自行承擔。
               </p>
             </section>
 
@@ -252,13 +252,13 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   6
                 </span>
-                第六条 · 合规与法律责任
+                第六條 · 合規與法律責任
               </h4>
               <p className="pl-7">
-                您应自行遵守所在国家或地区关于网络安全、数据安全与个人信息保护、计算机犯罪等方面的全部法律法规（在中国大陆包括但不限于《网络安全法》《数据安全法》《个人信息保护法》及相关司法解释）。
+                您應自行遵守所在國家或地區關於網路安全、資料安全與個人資訊保護、計算機犯罪等方面的全部法律法規（在中國大陸包括但不限於《網路安全法》《資料安全法》《個人資訊保護法》及相關司法解釋）。
                 <span className="font-medium text-foreground">
                   {" "}
-                  因您违反上述法律法规或本声明约定而产生的一切法律责任与后果，均由您本人独立承担，与本软件作者及贡献者无关。
+                  因您違反上述法律法規或本宣告約定而產生的一切法律責任與後果，均由您本人獨立承擔，與本軟體作者及貢獻者無關。
                 </span>
               </p>
             </section>
@@ -268,11 +268,11 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   7
                 </span>
-                第七条 · 免责声明与责任限制
+                第七條 · 免責宣告與責任限制
               </h4>
               <p className="pl-7">
-                本软件按"现状（AS IS）"与"现有（AS
-                AVAILABLE）"状态提供，不附带任何明示或默示的担保，包括但不限于对适销性、特定用途适用性、准确性及不侵权的担保。在适用法律允许的最大范围内，本软件作者及贡献者不对因使用或无法使用本软件（无论使用方式是否得当）而导致的任何直接、间接、偶然、特殊或后果性损失承担责任，包括但不限于数据丢失、系统损坏、业务中断、利润损失或法律纠纷。
+                本軟體按"現狀（AS IS）"與"現有（AS
+                AVAILABLE）"狀態提供，不附帶任何明示或默示的擔保，包括但不限於對適銷性、特定用途適用性、準確性及不侵權的擔保。在適用法律允許的最大範圍內，本軟體作者及貢獻者不對因使用或無法使用本軟體（無論使用方式是否得當）而導致的任何直接、間接、偶然、特殊或後果性損失承擔責任，包括但不限於資料丟失、系統損壞、業務中斷、利潤損失或法律糾紛。
               </p>
             </section>
 
@@ -281,17 +281,17 @@ export default function LoginPage() {
                 <span className="flex size-5 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                   8
                 </span>
-                第八条 · 条款变更与最终解释
+                第八條 · 條款變更與最終解釋
               </h4>
               <p className="pl-7">
-                作者有权根据法律法规或项目发展需要不时更新本声明，更新后的版本将随项目发布并自公布之日起生效；您继续使用本软件即视为接受修订后的条款。在法律允许的范围内，本声明的最终解释权归项目作者所有。若本声明任一条款被认定为无效，不影响其余条款的效力。
+                作者有權根據法律法規或專案發展需要不時更新本宣告，更新後的版本將隨專案釋出並自公佈之日起生效；您繼續使用本軟體即視為接受修訂後的條款。在法律允許的範圍內，本宣告的最終解釋權歸專案作者所有。若本宣告任一條款被認定為無效，不影響其餘條款的效力。
               </p>
             </section>
           </div>
 
           <DialogFooter className="mx-0 mb-0 flex-col items-stretch gap-2 rounded-b-xl px-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              {readToEnd ? "您已浏览全部条款" : "请将条款滚动至底部后再确认"}
+              {readToEnd ? "您已瀏覽全部條款" : "請將條款滾動至底部後再確認"}
             </p>
             <DialogClose asChild>
               <Button
@@ -302,7 +302,7 @@ export default function LoginPage() {
                   setError("");
                 }}
               >
-                我已阅读并同意全部条款
+                我已閱讀並同意全部條款
               </Button>
             </DialogClose>
           </DialogFooter>

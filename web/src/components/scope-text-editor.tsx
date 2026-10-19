@@ -13,7 +13,7 @@ const SCOPE_KIND_LABELS: Record<CompanyScopeKind, string> = {
   ip: "IP",
   cidr: "CIDR",
   icp: "ICP",
-  keyword: "关键词",
+  keyword: "關鍵詞",
 };
 
 export function ScopeTextEditor({
@@ -21,8 +21,8 @@ export function ScopeTextEditor({
   value,
   onValueChange,
   parsed,
-  label = "资产范围",
-  description = "每行一条，自动识别域名、IP、CIDR、ICP 备案和企业关键词。",
+  label = "資產範圍",
+  description = "每行一條，自動識別域名、IP、CIDR、ICP 備案和企業關鍵詞。",
 }: {
   id: string;
   value: string;
@@ -46,13 +46,13 @@ export function ScopeTextEditor({
         rows={8}
         value={value}
         aria-invalid={parsed.errors.length > 0}
-        placeholder={"example.com\n203.0.113.10\n198.51.100.0/24\n京ICP备12345678号-1\n企业名称关键词"}
+        placeholder={"example.com\n203.0.113.10\n198.51.100.0/24\n京ICP備12345678號-1\n企業名稱關鍵詞"}
         className="min-h-36 resize-y font-mono text-sm"
         onChange={(event) => onValueChange(event.target.value)}
       />
       {parsed.rules.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs">
-          <span>已识别 {parsed.rules.length} 条</span>
+          <span>已識別 {parsed.rules.length} 條</span>
           {Object.entries(SCOPE_KIND_LABELS).map(([kind, kindLabel]) => {
             const count = counts.get(kind as CompanyScopeKind) ?? 0;
             return count > 0 ? (
@@ -70,7 +70,7 @@ export function ScopeTextEditor({
               第 {item.line} 行：{item.error}
             </span>
           ))}
-          {parsed.errors.length > 5 && <span className="block">另有 {parsed.errors.length - 5} 行错误</span>}
+          {parsed.errors.length > 5 && <span className="block">另有 {parsed.errors.length - 5} 行錯誤</span>}
         </FieldError>
       )}
     </Field>

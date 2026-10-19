@@ -1,26 +1,26 @@
-// 渠道字段表与配置值的解析工具。
+// 渠道欄位表與配置值的解析工具。
 //
-// 与页面拆开是因为这一份是**数据**而不是视图：它描述每种渠道有哪些字段、
-// 各自该用什么控件，以及表单文本到配置值（JSON）的双向转换。
-// 单独放一个文件后，新增渠道只需要动这里，页面本身不必改。
-// 渠道类型的展示名与简介。放在前端是因为它只影响文案，后端不需要知道。
+// 與頁面拆開是因為這一份是**資料**而不是檢視：它描述每種渠道有哪些欄位、
+// 各自該用什麼控制元件，以及表單文本到配置值（JSON）的雙向轉換。
+// 單獨放一個檔案後，新增渠道只需要動這裡，頁面本身不必改。
+// 渠道型別的展示名與簡介。放在前端是因為它隻影響文案，後端不需要知道。
 export const KIND_LABEL: Record<string, string> = {
-  dingtalk: "钉钉",
-  feishu: "飞书",
-  wecom: "企业微信",
+  dingtalk: "釘釘",
+  feishu: "飛書",
+  wecom: "企業微信",
   webhook: "通用 Webhook",
   telegram: "Telegram",
-  email: "邮件",
+  email: "郵件",
 };
 
-// 各渠道的配置字段定义。
+// 各渠道的配置欄位定義。
 //
-// 这里刻意保留一份前端字段表，而不是让后端下发 schema：后端只负责
-// Validate（必填/格式），UI 需要的是布局与控件类型，两者关注的不是同一件事。
-// 唯一的耦合点是 secret_keys —— 哪些字段该渲染成密码框由后端给出，
-// 因为只有渠道实现自己清楚哪些值算凭据（企业微信的整个 Webhook 就是凭据，
-// 而钉钉的只是其中一个 secret）。新增渠道时这里少一个条目只会让表单变空白，
-// 不会静默出错（下面的 hasFields 会提示）。
+// 這裡刻意保留一份前端欄位表，而不是讓後端下發 schema：後端只負責
+// Validate（必填/格式），UI 需要的是佈局與控制元件型別，兩者關注的不是同一件事。
+// 唯一的耦合點是 secret_keys —— 哪些欄位該渲染成密碼框由後端給出，
+// 因為只有渠道實現自己清楚哪些值算憑據（企業微信的整個 Webhook 就是憑據，
+// 而釘釘的只是其中一個 secret）。新增渠道時這裡少一個條目只會讓表單變空白，
+// 不會靜默出錯（下面的 hasFields 會提示）。
 export type FieldKind = "text" | "password" | "number" | "select" | "textarea" | "switch" | "kv" | "list";
 export interface FieldDef {
   key: string;
@@ -40,9 +40,9 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
     },
     {
       key: "secret",
-      label: "加签密钥",
+      label: "加簽金鑰",
       kind: "password",
-      help: "机器人安全设置选「加签」时填写；选「自定义关键词」或未开启安全设置则留空",
+      help: "機器人安全設定選「加簽」時填寫；選「自定義關鍵詞」或未開啟安全設定則留空",
     },
   ],
   feishu: [
@@ -52,7 +52,7 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
       kind: "text",
       placeholder: "https://open.feishu.cn/open-apis/bot/v2/hook/...",
     },
-    { key: "secret", label: "签名校验密钥", kind: "password", help: "机器人开启「签名校验」时填写，否则留空" },
+    { key: "secret", label: "簽名校驗金鑰", kind: "password", help: "機器人開啟「簽名校驗」時填寫，否則留空" },
   ],
   wecom: [
     {
@@ -63,27 +63,27 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
     },
   ],
   webhook: [
-    { key: "url", label: "目标 URL", kind: "text", placeholder: "https://your-endpoint.example.com/hook" },
+    { key: "url", label: "目標 URL", kind: "text", placeholder: "https://your-endpoint.example.com/hook" },
     {
       key: "method",
-      label: "请求方法",
+      label: "請求方法",
       kind: "select",
       options: [
-        { value: "POST", label: "POST（带请求体）" },
-        { value: "PUT", label: "PUT（带请求体）" },
-        { value: "PATCH", label: "PATCH（带请求体）" },
-        { value: "GET", label: "GET（不带请求体）" },
+        { value: "POST", label: "POST（帶請求體）" },
+        { value: "PUT", label: "PUT（帶請求體）" },
+        { value: "PATCH", label: "PATCH（帶請求體）" },
+        { value: "GET", label: "GET（不帶請求體）" },
       ],
     },
-    { key: "headers", label: "自定义请求头", kind: "kv", help: "每行 KEY=VALUE，例如 Authorization=Bearer xxx" },
+    { key: "headers", label: "自定義請求頭", kind: "kv", help: "每行 KEY=VALUE，例如 Authorization=Bearer xxx" },
     {
       key: "body_template",
-      label: "请求体模板",
+      label: "請求體模板",
       kind: "textarea",
       help:
-        "留空用内置默认模板。变量：{{.Title}} {{.Batch}} {{.Count}} {{.HomeURL}} {{.SentAt}}，" +
+        "留空用內建預設模板。變數：{{.Title}} {{.Batch}} {{.Count}} {{.HomeURL}} {{.SentAt}}，" +
         "以及 range .Items 下的 .Name/.VulnClass/.Severity/.Summary/.Assets/.DetailURL/.StatusLabel。" +
-        "插入字符串请用 {{json .Xxx}} 而不是 {{.Xxx}}，否则标题里的引号会破坏 JSON。",
+        "插入字串請用 {{json .Xxx}} 而不是 {{.Xxx}}，否則標題裡的引號會破壞 JSON。",
     },
   ],
   telegram: [
@@ -94,23 +94,23 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
       label: "API 地址",
       kind: "text",
       placeholder: "https://api.telegram.org",
-      help: "留空用官方地址；自建 Bot API 反代时填写",
+      help: "留空用官方地址；自建 Bot API 反代時填寫",
     },
   ],
   email: [
-    { key: "host", label: "SMTP 服务器", kind: "text", placeholder: "smtp.example.com" },
+    { key: "host", label: "SMTP 伺服器", kind: "text", placeholder: "smtp.example.com" },
     {
       key: "port",
-      label: "端口",
+      label: "埠",
       kind: "number",
       placeholder: "587",
-      help: "587 走 STARTTLS；465 请把「隐式 TLS」打开",
+      help: "587 走 STARTTLS；465 請把「隱式 TLS」開啟",
     },
-    { key: "username", label: "账号", kind: "text" },
-    { key: "password", label: "密码 / 授权码", kind: "password" },
-    { key: "from", label: "发件人", kind: "text", placeholder: "artex@example.com" },
-    { key: "to", label: "收件人", kind: "list", help: "多个地址用逗号分隔" },
-    { key: "tls", label: "隐式 TLS", kind: "switch", help: "465 端口打开；587 保持关闭（会自动 STARTTLS）" },
+    { key: "username", label: "帳號", kind: "text" },
+    { key: "password", label: "密碼 / 授權碼", kind: "password" },
+    { key: "from", label: "發件人", kind: "text", placeholder: "artex@example.com" },
+    { key: "to", label: "收件人", kind: "list", help: "多個地址用逗號分隔" },
+    { key: "tls", label: "隱式 TLS", kind: "switch", help: "465 埠開啟；587 保持關閉（會自動 STARTTLS）" },
   ],
 };
 
@@ -119,7 +119,7 @@ export const SEVERITY_OPTIONS = [
   { value: "low", label: "低危及以上" },
   { value: "medium", label: "中危及以上" },
   { value: "high", label: "高危及以上" },
-  { value: "critical", label: "仅严重" },
+  { value: "critical", label: "僅嚴重" },
 ];
 
 export type ChannelForm = {
@@ -163,7 +163,7 @@ export function parseKV(text: string): Record<string, string> {
   }
   return out;
 }
-// parseIDs 解析逗号/空白分隔的 id 列表。
+// parseIDs 解析逗號/空白分隔的 id 列表。
 export function parseIDs(text: string): number[] {
   return text
     .split(/[\s,，]+/)
@@ -172,7 +172,7 @@ export function parseIDs(text: string): number[] {
     .map((s) => Number(s))
     .filter((n) => Number.isFinite(n) && n > 0);
 }
-// parseKeywords 解析行/逗号分隔的关键词列表（漏洞类型名可能含空格，所以按行或逗号切）。
+// parseKeywords 解析行/逗號分隔的關鍵詞列表（漏洞型別名可能含空格，所以按行或逗號切）。
 export function parseKeywords(text: string): string[] {
   return text
     .split(/[\n,，]+/)

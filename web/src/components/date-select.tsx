@@ -20,7 +20,7 @@ export function DateSelect({
   value,
   onValueChange,
   optional = false,
-  placeholder = "选择日期",
+  placeholder = "選擇日期",
   "aria-label": ariaLabel,
 }: {
   value?: string;

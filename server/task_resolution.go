@@ -30,11 +30,11 @@ func (s *Server) resolutionFromProfile(p *db.LLMProfile, source string) taskLLMR
 		Source:    source,
 	}
 	if p.APIKey == "" {
-		result.Reason = "LLM 配置未设置 API Key"
+		result.Reason = "LLM 配置未設定 API Key"
 		return result
 	}
 	if _, _, ok := s.providerForProfile(p.ID); !ok {
-		result.Reason = "LLM 配置格式或参数无效"
+		result.Reason = "LLM 配置格式或引數無效"
 		return result
 	}
 	result.Available = true
@@ -67,7 +67,7 @@ func (s *Server) resolveTaskRoleLLM(t *Task, agentKey string) (taskLLMResolution
 	state := t.llmStateSnapshot()
 	if len(state.ProfileIDs) > 0 {
 		if state.ActiveID == nil {
-			return taskLLMResolution{Source: "task_chain", Reason: "任务 LLM 配置链额度已耗尽"}, nil
+			return taskLLMResolution{Source: "task_chain", Reason: "任務 LLM 配置鏈額度已耗盡"}, nil
 		}
 		p, err := s.m.pg.ProfileByID(*state.ActiveID)
 		if err != nil {
@@ -90,14 +90,14 @@ func (s *Server) resolveTaskRoleLLM(t *Task, agentKey string) (taskLLMResolution
 	s.cfgMu.Unlock()
 	if on {
 		if name == "" {
-			name = "全局配置"
+			name = "全域配置"
 		}
 		return taskLLMResolution{
 			Name: name, Format: cfg.Provider(), Model: cfg.Model,
 			Source: "environment", Available: true,
 		}, nil
 	}
-	return taskLLMResolution{Source: "global", Reason: "没有可用的 LLM 配置"}, nil
+	return taskLLMResolution{Source: "global", Reason: "沒有可用的 LLM 配置"}, nil
 }
 
 func (s *Server) taskLLMResolutionHandler(w http.ResponseWriter, r *http.Request) {

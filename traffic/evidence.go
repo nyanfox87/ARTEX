@@ -28,7 +28,7 @@ type EvidenceExchange struct {
 
 func (t *Traffic) ReadEvidence(ctx context.Context, ids []string, consume func(EvidenceExchange) error) error {
 	if t == nil {
-		return errors.New("流量录制存储不可用")
+		return errors.New("流量錄製儲存不可用")
 	}
 	t.wmu.Lock()
 	defer t.wmu.Unlock()
@@ -56,7 +56,7 @@ func (t *Traffic) readEvidence(id string, consume func(EvidenceExchange) error) 
 		Scan(&e.ReqHead, &req, &reqBlob, &e.RespHead, &resp, &respBlob)
 	if errors.Is(err, sql.ErrNoRows) && legacy != "" {
 		if !filepath.IsLocal(legacy) {
-			return errors.New("旧流量路径无效")
+			return errors.New("舊流量路徑無效")
 		}
 		r, err := os.Open(filepath.Join(t.dir, legacy, "request.http"))
 		if err != nil {
@@ -114,7 +114,7 @@ func splitLegacyEvidence(r io.Reader) (string, io.Reader, error) {
 		}
 		head.WriteString(line)
 		if head.Len() > 1<<20 {
-			return "", nil, errors.New("旧流量报文头过大")
+			return "", nil, errors.New("舊流量報文頭過大")
 		}
 		if errors.Is(err, io.EOF) {
 			return head.String(), b, nil

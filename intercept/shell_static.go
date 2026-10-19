@@ -326,7 +326,7 @@ func generatedScriptWrites(stmt *syntax.Stmt, args []*syntax.Word, dir string, t
 				}
 				path = absolute
 			}
-			writes = append(writes, scriptReference{path: path, generated: true, problem: "命令内脚本写入内容或执行路径不确定"})
+			writes = append(writes, scriptReference{path: path, generated: true, problem: "命令內指令碼寫入內容或執行路徑不確定"})
 		}
 	}
 	if allowSed && len(writes) == 1 && outputs == 1 && inputs == 0 && !appendOutput && topLevel && !stmt.Background {
@@ -420,7 +420,7 @@ func generatedScriptWrites(stmt *syntax.Stmt, args []*syntax.Word, dir string, t
 			}
 			old, err := readScript(writes[0].path)
 			if err != nil && !os.IsNotExist(err) {
-				writes[0].problem = "脚本追加前内容无法读取：" + err.Error()
+				writes[0].problem = "指令碼追加前內容無法讀取：" + err.Error()
 				return writes
 			}
 			content = string(old) + content

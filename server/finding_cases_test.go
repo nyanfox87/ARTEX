@@ -45,7 +45,7 @@ func testCaseServer(t *testing.T) (*Server, int64, []int64) {
 func TestFindingCaseAPIPaginationAndTools(t *testing.T) {
 	s, task, ids := testCaseServer(t)
 	ctx := context.Background()
-	a := findingCaseRequest{TaskID: json.RawMessage(fmt.Sprint(task)), Title: "订单越权", Reason: "same check"}
+	a := findingCaseRequest{TaskID: json.RawMessage(fmt.Sprint(task)), Title: "訂單越權", Reason: "same check"}
 	for _, id := range ids {
 		a.IDs = append(a.IDs, json.RawMessage(fmt.Sprint(id)))
 	}
@@ -103,12 +103,12 @@ func TestFindingCaseAPIPaginationAndTools(t *testing.T) {
 func TestFindingCaseConsolidatedExportPreservesScope(t *testing.T) {
 	s, task, ids := testCaseServer(t)
 	ctx := context.Background()
-	cid, err := s.m.pg.MergeFindingCase(ctx, task, ids, "订单越权", "same", "reporter")
+	cid, err := s.m.pg.MergeFindingCase(ctx, task, ids, "訂單越權", "same", "reporter")
 	if err != nil {
 		t.Fatal(err)
 	}
 	c, _ := s.m.pg.GetFindingCase(cid)
-	if err := s.m.pg.UpdateFindingCaseReport(ctx, cid, c.Version, "订单越权", "complete report", "high", "verified"); err != nil {
+	if err := s.m.pg.UpdateFindingCaseReport(ctx, cid, c.Version, "訂單越權", "complete report", "high", "verified"); err != nil {
 		t.Fatal(err)
 	}
 	fs, err := s.m.pg.ListFindingsForExport(db.FindingFilter{}, ids[:1])
@@ -134,7 +134,7 @@ func TestFindingCaseConsolidatedExportPreservesScope(t *testing.T) {
 		t.Fatal(err)
 	}
 	out, err = s.consolidateFindingCaseExport(expanded, plan, false)
-	if err != nil || !strings.Contains(out[0].Report, "已过期") || !strings.Contains(out[0].Evidence, "proof low") {
+	if err != nil || !strings.Contains(out[0].Report, "已過期") || !strings.Contains(out[0].Evidence, "proof low") {
 		t.Fatalf("pending export omitted evidence %+v %v", out, err)
 	}
 }

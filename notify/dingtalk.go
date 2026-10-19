@@ -14,25 +14,25 @@ import (
 	"time"
 )
 
-// dingTalkChannel 实现钉钉自定义机器人。
+// dingTalkChannel 實現釘釘自定義機器人。
 //
-// 平台特性（决定了这里的实现取舍）：
-//   - 单机器人限流 20 条/分钟，超发会被静默丢弃（HTTP 仍可能 200），
-//     所以限流必须在客户端做，见 DefaultRatePerMin。
-//   - 安全设置三选一：加签 / 自定义关键词 / IP 白名单。加签是唯一不依赖
-//     消息内容的方案，所以只支持加签（也支持三者都不开的裸 webhook）。
-//   - 成功/失败都返回 HTTP 200，靠 body 里的 errcode 区分——不检查 errcode
-//     会把投递失败记成成功。
+// 平臺特性（決定了這裡的實現取捨）：
+//   - 單機器人限流 20 條/分鐘，超發會被靜默丟棄（HTTP 仍可能 200），
+//     所以限流必須在客戶端做，見 DefaultRatePerMin。
+//   - 安全設定三選一：加簽 / 自定義關鍵詞 / IP 白名單。加簽是唯一不依賴
+//     訊息內容的方案，所以只支援加簽（也支援三者都不開的裸 webhook）。
+//   - 成功/失敗都返回 HTTP 200，靠 body 裡的 errcode 區分——不檢查 errcode
+//     會把投遞失敗記成成功。
 type dingTalkChannel struct{}
 
 func (dingTalkChannel) Kind() string { return KindDingTalk }
 
 func (dingTalkChannel) DefaultRatePerMin() int { return 20 }
 
-// 钉钉的 Webhook 地址里带 access_token，本身就是凭据，因此整体掩码。
+// 釘釘的 Webhook 地址裡帶 access_token，本身就是憑據，因此整體掩碼。
 func (dingTalkChannel) SecretKeys() []string { return []string{"webhook", "secret"} }
 
-// 目标是钉钉的 Webhook 地址本身；改地址必须同时对新地址重新表态加签密钥。
+// 目標是釘釘的 Webhook 地址本身；改地址必須同時對新地址重新表態加簽金鑰。
 func (dingTalkChannel) DestinationKeys() []string { return []string{"webhook"} }
 
 func (dingTalkChannel) Validate(cfg map[string]any) error {
@@ -41,12 +41,12 @@ func (dingTalkChannel) Validate(cfg map[string]any) error {
 		return errors.New("缺少 Webhook 地址")
 	}
 	if err := validateHTTPURL(hook); err != nil {
-		return fmt.Errorf("Webhook 地址无效: %w", err)
+		return fmt.Errorf("Webhook 地址無效: %w", err)
 	}
 	return nil
 }
 
-// Send 投递一次消息。有回链且是单条时用 ActionCard（带按钮），否则用 markdown。
+// Send 投遞一次訊息。有回鏈且是單條時用 ActionCard（帶按鈕），否則用 markdown。
 func (c dingTalkChannel) Send(ctx context.Context, cfg map[string]any, m Message) (int, error) {
 	hook := cfgString(cfg, "webhook")
 	if err := c.Validate(cfg); err != nil {
@@ -58,7 +58,7 @@ func (c dingTalkChannel) Send(ctx context.Context, cfg map[string]any, m Message
 	}
 
 	title := markdownTitle(m)
-	// 钉钉 markdown 正文无明确字节上限，但仍做上限保护，避免证据字段异常膨胀。
+	// 釘釘 markdown 正文無明確位元組上限，但仍做上限保護，避免證據欄位異常膨脹。
 	text, kept := markdownBody(m, 20000)
 
 	var payload any
@@ -69,7 +69,7 @@ func (c dingTalkChannel) Send(ctx context.Context, cfg map[string]any, m Message
 				"title":          title,
 				"text":           text,
 				"btnOrientation": "0",
-				"singleTitle":    "查看详情",
+				"singleTitle":    "檢視詳情",
 				"singleURL":      m.Items[0].DetailURL,
 			},
 		}
@@ -84,27 +84,27 @@ func (c dingTalkChannel) Send(ctx context.Context, cfg map[string]any, m Message
 	if err != nil {
 		return 0, err
 	}
-	// 钉钉把业务错误藏在 200 响应里。
+	// 釘釘把業務錯誤藏在 200 回應裡。
 	var res struct {
 		ErrCode int    `json:"errcode"`
 		ErrMsg  string `json:"errmsg"`
 	}
 	if err := json.Unmarshal(raw, &res); err != nil {
-		return 0, fmt.Errorf("解析钉钉响应失败: %w (%s)", err, snippet(raw))
+		return 0, fmt.Errorf("解析釘釘回應失敗: %w (%s)", err, snippet(raw))
 	}
 	if res.ErrCode != 0 {
-		// 301000 是签名校验失败、310000 是关键词不匹配——都是配置错误，
-		// 重试不会自愈。
-		return 0, Permanent(fmt.Errorf("钉钉返回错误 %d: %s", res.ErrCode, res.ErrMsg))
+		// 301000 是簽名校驗失敗、310000 是關鍵詞不匹配——都是配置錯誤，
+		// 重試不會自愈。
+		return 0, Permanent(fmt.Errorf("釘釘返回錯誤 %d: %s", res.ErrCode, res.ErrMsg))
 	}
 	return kept, nil
 }
 
-// dingTalkSignedURL 按官方加签规则给 webhook 追加 timestamp 与 sign 参数。
+// dingTalkSignedURL 按官方加簽規則給 webhook 追加 timestamp 與 sign 引數。
 //
-// 规则：待签串 = timestamp + "\n" + secret，HMAC-SHA256 的**密钥也是 secret**，
-// 结果 base64 后 URL 编码。timestamp 是毫秒。secret 为空时原样返回，
-// 以支持未开启加签的机器人。
+// 規則：待籤串 = timestamp + "\n" + secret，HMAC-SHA256 的**金鑰也是 secret**，
+// 結果 base64 後 URL 編碼。timestamp 是毫秒。secret 為空時原樣返回，
+// 以支援未開啟加簽的機器人。
 func dingTalkSignedURL(hook, secret string, now time.Time) (string, error) {
 	if secret == "" {
 		return hook, nil
@@ -116,8 +116,8 @@ func dingTalkSignedURL(hook, secret string, now time.Time) (string, error) {
 
 	u, err := url.Parse(hook)
 	if err != nil {
-		// 不透传 err：url.Parse 的错误文本里带完整地址（含 access_token）。
-		return "", fmt.Errorf("解析 Webhook 地址失败: %s", redactRequestTarget(hook))
+		// 不透傳 err：url.Parse 的錯誤文本里帶完整地址（含 access_token）。
+		return "", fmt.Errorf("解析 Webhook 地址失敗: %s", redactRequestTarget(hook))
 	}
 	q := u.Query()
 	q.Set("timestamp", ts)
@@ -126,35 +126,35 @@ func dingTalkSignedURL(hook, secret string, now time.Time) (string, error) {
 	return u.String(), nil
 }
 
-// validateHTTPURL 校验地址可用、协议受支持，并对字面 IP 目标做内网判断。
+// validateHTTPURL 校驗地址可用、協議受支援，並對字面 IP 目標做內網判斷。
 //
-// 两点讲究：
+// 兩點講究：
 //
-//  1. **错误信息必须脱敏**。url.Parse 自己返回的是 *url.Error，它的 Error() 带
-//     **完整原始地址**，而本功能这几家的地址里就嵌着凭据（钉钉 access_token、
-//     企微 key、Telegram 的 bot token、飞书 hook id）。曾经这里直接 `return err`，
-//     于是「地址格式非法」这条错误就把凭据带了出去，流向测试接口的 400 响应、
-//     每次投递落库的 last_error、服务端日志与投递历史接口。
+//  1. **錯誤資訊必須脫敏**。url.Parse 自己返回的是 *url.Error，它的 Error() 帶
+//     **完整原始地址**，而本功能這幾家的地址裡就嵌著憑據（釘釘 access_token、
+//     企微 key、Telegram 的 bot token、飛書 hook id）。曾經這裡直接 `return err`，
+//     於是「地址格式非法」這條錯誤就把憑據帶了出去，流向測試介面的 400 回應、
+//     每次投遞落庫的 last_error、服務端日誌與投遞歷史介面。
 //
-//  2. **字面 IP 直接判内网**，域名留给拨号阶段判（blockInternalDial 才是最终
-//     生效点，也能覆盖 DNS 重绑定）。这里做一次是为了让保存配置时就能得到提示，
-//     而不是等到第一次投递失败。
+//  2. **字面 IP 直接判內網**，域名留給撥號階段判（blockInternalDial 才是最終
+//     生效點，也能覆蓋 DNS 重綁定）。這裡做一次是為了讓儲存配置時就能得到提示，
+//     而不是等到第一次投遞失敗。
 //
-// 限制协议是防御性的：file:///gopher:// 之类会让 http.Client 产生意料之外的
-// 行为（虽已被 scheme 检查挡下，但没有理由放开这个面）。
+// 限制協議是防禦性的：file:///gopher:// 之類會讓 http.Client 產生意料之外的
+// 行為（雖已被 scheme 檢查擋下，但沒有理由放開這個面）。
 func validateHTTPURL(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return fmt.Errorf("地址无法解析（%s）", redactRequestTarget(raw))
+		return fmt.Errorf("地址無法解析（%s）", redactRequestTarget(raw))
 	}
 	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("只支持 http/https，收到 %q", u.Scheme)
+		return fmt.Errorf("只支援 http/https，收到 %q", u.Scheme)
 	}
 	if u.Host == "" {
-		return errors.New("缺少主机名")
+		return errors.New("缺少主機名")
 	}
 	if ip := net.ParseIP(u.Hostname()); ip != nil && isBlockedDialIP(ip) && !allowLocalTargets() {
-		return fmt.Errorf("拒绝投递到本机/链路本地地址 %s（如确需投递到本机服务，设置 %s=1）", ip, AllowLocalTargetsEnv)
+		return fmt.Errorf("拒絕投遞到本機/鏈路本地地址 %s（如確需投遞到本機服務，設定 %s=1）", ip, AllowLocalTargetsEnv)
 	}
 	return nil
 }

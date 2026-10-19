@@ -82,7 +82,7 @@ func (s *Server) consolidateFindingCaseExport(fs []*db.DBFinding, plan *findingC
 			if sev == "" {
 				sev = "unassessed"
 			}
-			composite := &db.DBFinding{ID: f.ID, ExportCaseID: c.ID, TaskID: c.TaskID, TaskDescription: f.TaskDescription, Name: title, VulnClass: "归并漏洞", Severity: sev, Status: f.Status, CreatedAt: c.CreatedAt, Report: c.Report, EvidenceVersion: c.Version, ReportEvidenceVersion: c.ReportVersion}
+			composite := &db.DBFinding{ID: f.ID, ExportCaseID: c.ID, TaskID: c.TaskID, TaskDescription: f.TaskDescription, Name: title, VulnClass: "歸併漏洞", Severity: sev, Status: f.Status, CreatedAt: c.CreatedAt, Report: c.Report, EvidenceVersion: c.Version, ReportEvidenceVersion: c.ReportVersion}
 			assets := map[int64]bool{}
 			var refs []string
 			var evidence strings.Builder
@@ -98,19 +98,19 @@ func (s *Server) consolidateFindingCaseExport(fs []*db.DBFinding, plan *findingC
 					}
 				}
 				refs = append(refs, fmt.Sprintf("#%d [%s] %s", member.ID, member.Severity, member.Name))
-				fmt.Fprintf(&evidence, "原始上报 #%d：%s\n%s\n\n", member.ID, member.Summary, member.Evidence)
+				fmt.Fprintf(&evidence, "原始上報 #%d：%s\n%s\n\n", member.ID, member.Summary, member.Evidence)
 				if member.Report != "" {
-					fmt.Fprintf(&evidence, "原始报告 #%d：\n%s\n\n", member.ID, member.Report)
+					fmt.Fprintf(&evidence, "原始報告 #%d：\n%s\n\n", member.ID, member.Report)
 				}
 				for _, b := range member.TrafficBindings {
-					b.Note = fmt.Sprintf("来自上报 #%d；%s", member.ID, b.Note)
+					b.Note = fmt.Sprintf("來自上報 #%d；%s", member.ID, b.Note)
 					composite.TrafficBindings = append(composite.TrafficBindings, b)
 				}
 			}
-			composite.Summary = fmt.Sprintf("漏洞文件夹 #%d；原始记录：%s。统一评级依据：%s", cid, strings.Join(refs, "；"), c.SeverityReason)
+			composite.Summary = fmt.Sprintf("漏洞資料夾 #%d；原始記錄：%s。統一評級依據：%s", cid, strings.Join(refs, "；"), c.SeverityReason)
 			composite.TrafficCount = len(composite.TrafficBindings)
 			if stale || c.Report == "" {
-				composite.Report = "**统一报告尚未生成或已过期，以下提供全部原始证据，不能视为完整复现已验证。**\n\n" + c.Report
+				composite.Report = "**統一報告尚未生成或已過期，以下提供全部原始證據，不能視為完整重現已驗證。**\n\n" + c.Report
 				composite.Evidence = evidence.String()
 				composite.ReportEvidenceVersion = -1
 			}

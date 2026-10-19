@@ -11,8 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrSideBusy = errors.New("当前会话已有旁路问题正在回答")
-var ErrSideParentGone = errors.New("旁路父会话已删除或归档")
+var ErrSideBusy = errors.New("當前會話已有旁路問題正在回答")
+var ErrSideParentGone = errors.New("旁路父會話已刪除或歸檔")
 
 // Lock the real parent before the side session, also covering soft task/intent
 // deletion. A delayed checkpoint cannot recreate data after archive cleanup.
@@ -175,7 +175,7 @@ func (d *DB) StartSideRequest(ctx context.Context, s sidequestion.Snapshot, clie
 	e, err := scanSide(tx.QueryRowContext(ctx, `SELECT `+sideCols+` FROM side_question_requests WHERE session_key=$1 AND generation=$2 AND client_id=$3`, s.Parent.Key(), generation, clientID))
 	if err == nil {
 		if e.Question != question {
-			return nil, false, fmt.Errorf("同一请求 ID 不能用于不同问题")
+			return nil, false, fmt.Errorf("同一請求 ID 不能用於不同問題")
 		}
 		return &e, false, tx.Commit()
 	}
@@ -285,6 +285,6 @@ AND EXISTS(SELECT 1 FROM side_question_requests r WHERE r.id=$4 AND r.session_ke
 }
 
 func (d *DB) InterruptSideRequests(ctx context.Context) error {
-	_, err := d.ExecContext(ctx, `UPDATE side_question_requests SET status='interrupted',error='服务重启，回答已中断',sequence=sequence+1 WHERE status='running'`)
+	_, err := d.ExecContext(ctx, `UPDATE side_question_requests SET status='interrupted',error='服務重啟，回答已中斷',sequence=sequence+1 WHERE status='running'`)
 	return err
 }

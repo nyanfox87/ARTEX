@@ -15,7 +15,7 @@ func TestFindingCaseGuidanceRespectsToolsAndTrafficSwitch(t *testing.T) {
 		tools = append(tools, writeTool(name, name, obj(nil), func(context.Context, json.RawMessage) (actool.Result, error) { return actool.Text("ok"), nil }))
 	}
 	_, guide := findingCaseWorkflow("reporter", tools)
-	if !strings.Contains(guide, "不能直接取成员最高等级") || !strings.Contains(guide, "独立报告") {
+	if !strings.Contains(guide, "不能直接取成員最高等級") || !strings.Contains(guide, "獨立報告") {
 		t.Fatal("missing preservation rules")
 	}
 	if _, guide := findingCaseWorkflow("worker", tools); guide != "" {
@@ -46,7 +46,7 @@ func TestHistoricalFindingReviewFiltersMutationAndProbeTools(t *testing.T) {
 			t.Fatal("historical mutation capability", tool.Name())
 		}
 	}
-	if len(out) != 6 || def.FindingGuidance != "" || !strings.Contains(def.CaseGuidance, "历史整理模式") || !strings.Contains(def.CaseGuidance, "接口、路径、后端、读/写影响、评级不同") {
+	if len(out) != 6 || def.FindingGuidance != "" || !strings.Contains(def.CaseGuidance, "歷史整理模式") || !strings.Contains(def.CaseGuidance, "介面、路徑、後端、讀/寫影響、評級不同") {
 		t.Fatal("missing historical isolation", def)
 	}
 	normal, _, cl := AugmentTools(t.Context(), "reporter", tools)

@@ -61,12 +61,12 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
-        // 关闭对话框的唯一条件:点击的是遮罩(灰色背景)本身,且此刻没有任何 Radix 弹层
-        // (Select 下拉等)开着。其余"外部交互"一律挡掉(Esc、右上角 ✕ 仍可关):
-        //  · 点弹层里的选项 → target 不是遮罩 → 挡;
-        //  · 弹层开着时点对话框外/遮罩想收起它 → 有弹层开着 → 挡(只收弹层,不关对话框);
-        //  · 弹层收起时焦点移动被 Radix 误判为焦点移出 → target 不是遮罩 → 挡。
-        // (onInteractOutside 在指针/焦点两条路径都会触发。)调用方仍可追加逻辑。
+        // 關閉對話方塊的唯一條件:點選的是遮罩(灰色背景)本身,且此刻沒有任何 Radix 彈層
+        // (Select 下拉等)開著。其餘"外部互動"一律擋掉(Esc、右上角 ✕ 仍可關):
+        //  · 點彈層裡的選項 → target 不是遮罩 → 擋;
+        //  · 彈層開著時點對話方塊外/遮罩想收起它 → 有彈層開著 → 擋(只收彈層,不關對話方塊);
+        //  · 彈層收起時焦點移動被 Radix 誤判為焦點移出 → target 不是遮罩 → 擋。
+        // (onInteractOutside 在指標/焦點兩條路徑都會觸發。)呼叫方仍可追加邏輯。
         onInteractOutside={(e) => {
           const target = e.detail.originalEvent.target as Element | null
           const onOverlay = !!target?.closest?.("[data-slot='dialog-overlay']")

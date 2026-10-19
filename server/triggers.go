@@ -6,7 +6,7 @@ import (
 	"github.com/Autumn-27/artex/db"
 )
 
-// ---------- P3 agent triggers (仅自定义 agent) ----------
+// ---------- P3 agent triggers (僅自定義 agent) ----------
 
 func (s *Server) pgListTriggers(w http.ResponseWriter, r *http.Request) {
 	pg, a, ok := s.agentByKey(w, r)
@@ -42,10 +42,10 @@ type triggerReq struct {
 // at least one condition, and on_tool_call requires a non-empty tool set.
 func validateTrigger(req *triggerReq) string {
 	if req.IntervalSec == 0 && !req.OnFinding && !req.OnGoalMet && !req.OnTaskTimeout && !req.OnToolCall && !req.OnTaskCreate {
-		return "至少选择一种触发条件(定时/发现finding/目标达成/任务超时/工具调用/任务创建)"
+		return "至少選擇一種觸發條件(定時/發現finding/目標達成/任務超時/工具呼叫/任務建立)"
 	}
 	if req.OnToolCall && len(req.ToolNames) == 0 {
-		return "工具调用触发至少选择一个工具"
+		return "工具呼叫觸發至少選擇一個工具"
 	}
 	return ""
 }
@@ -56,7 +56,7 @@ func (s *Server) pgCreateTrigger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.Builtin {
-		writeErr(w, 400, "触发器仅支持自定义 agent")
+		writeErr(w, 400, "觸發器僅支援自定義 agent")
 		return
 	}
 	var req triggerReq

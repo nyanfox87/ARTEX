@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-// LLM 重试策略：五层重试的「次数 + 间隔」全局配置，见 docs/LLM重试设计.md。
-// 存在 settings 表的一个 JSON 值里 —— 它是整机一份的运行参数，不值得为它开一张表；
-// 读取走内置默认兜底，所以键不存在(全新库/从未配置过)时行为与写死常量时代完全一致。
+// LLM 重試策略：五層重試的「次數 + 間隔」全域配置，見 docs/LLM重試設計.md。
+// 存在 settings 表的一個 JSON 值裡 —— 它是整機一份的執行引數，不值得為它開一張表；
+// 讀取走內建預設兜底，所以鍵不存在(全新庫/從未配置過)時行為與寫死常量時代完全一致。
 
 const settingLLMRetryPolicy = "llm_retry_policy"
 
 // RetryRule is one layer's knob pair. The zero value means "unset":
 //
-//	Attempts   0 = 用内置默认次数; -1 = 关闭该层重试; >0 = 用该值
-//	IntervalMS 0 = 用该层原本的间隔策略(通常是指数退避); >0 = 改用固定毫秒间隔
+//	Attempts   0 = 用內建預設次數; -1 = 關閉該層重試; >0 = 用該值
+//	IntervalMS 0 = 用該層原本的間隔策略(通常是指數退避); >0 = 改用固定毫秒間隔
 //
-// -1 是「显式关掉」而不是「0 次」，因为 0 已经被「未配置」占用了。
+// -1 是「顯式關掉」而不是「0 次」，因為 0 已經被「未配置」佔用了。
 type RetryRule struct {
 	Attempts   int `json:"attempts"`
 	IntervalMS int `json:"interval_ms"`
@@ -76,20 +76,20 @@ func (o RetryOverride) Clamped() RetryOverride {
 	return o
 }
 
-// LLMRetryPolicy holds the五层 retry configuration. Connect/Empty/Stream are the
+// LLMRetryPolicy holds the五層 retry configuration. Connect/Empty/Stream are the
 // per-request layers (a profile may override them, see LLMProfile.Retry);
 // Breaker and Intent are process-wide by nature and live only here.
 type LLMRetryPolicy struct {
-	// Connect：SDK 建连重试(连接重置/超时/429/5xx，流开始前)。默认 3 次、指数退避。
+	// Connect：SDK 建連重試(連線重置/超時/429/5xx，流開始前)。預設 3 次、指數退避。
 	Connect RetryRule `json:"connect"`
-	// Empty：SDK 空响应重试(完成但无 content block，仅 openai 格式)。默认 2 次、指数退避。
+	// Empty：SDK 空回應重試(完成但無 content block，僅 openai 格式)。預設 2 次、指數退避。
 	Empty RetryRule `json:"empty"`
-	// Stream：同 provider 安全窗口重试(未交付输出前的断流重放)。默认 2 次、0.5s 起指数(封顶 4s)。
+	// Stream：同 provider 安全視窗重試(未交付輸出前的斷流重放)。預設 2 次、0.5s 起指數(封頂 4s)。
 	Stream RetryRule `json:"stream"`
-	// Breaker：轮询熔断。Attempts=连续几次瞬时失败触发熔断(默认 3，-1=瞬时失败不熔断，
-	// 硬失败如余额不足/密钥失效仍立即熔断)；IntervalMS=固定冷却时长(0=默认 1/5/30min 梯度)。
+	// Breaker：輪詢熔斷。Attempts=連續幾次瞬時失敗觸發熔斷(預設 3，-1=瞬時失敗不熔斷，
+	// 硬失敗如餘額不足/金鑰失效仍立即熔斷)；IntervalMS=固定冷卻時長(0=預設 1/5/30min 梯度)。
 	Breaker RetryRule `json:"breaker"`
-	// Intent：worker 以 model_error 收场后的整条意图重跑。默认 2 次、固定 3s。
+	// Intent：worker 以 model_error 收場後的整條意圖重跑。預設 2 次、固定 3s。
 	Intent RetryRule `json:"intent"`
 }
 

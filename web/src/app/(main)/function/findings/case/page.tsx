@@ -71,7 +71,7 @@ function CaseDetail() {
     setBusy(true);
     try {
       await api.regenerateFindingCase(id, contextTask);
-      toast.success("已提交重新整理，可查看执行状态");
+      toast.success("已提交重新整理，可檢視執行狀態");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -81,10 +81,10 @@ function CaseDetail() {
   async function detach() {
     setBusy(true);
     try {
-      for (const fid of selected) await api.removeFindingCaseMember(id, fid, "人工撤销归并");
+      for (const fid of selected) await api.removeFindingCaseMember(id, fid, "人工撤銷歸併");
       setSelected(new Set());
       setRefresh((v) => v + 1);
-      toast.success("已移出，原始记录保留");
+      toast.success("已移出，原始記錄保留");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -116,43 +116,43 @@ function CaseDetail() {
       ) : null}
       {!c.active ? (
         <Alert>
-          <AlertDescription>此文件夹已解散或并入其他组，原始记录仍可从漏洞列表查看。</AlertDescription>
+          <AlertDescription>此資料夾已解散或併入其他組，原始記錄仍可從漏洞列表檢視。</AlertDescription>
         </Alert>
       ) : null}
       {readOnly ? (
         <Alert>
-          <AlertDescription>继承任务的漏洞组，只读。</AlertDescription>
+          <AlertDescription>繼承任務的漏洞組，只讀。</AlertDescription>
         </Alert>
       ) : (
         <FindingCaseReviewPanel taskId={c.task_id ?? undefined} />
       )}
       <Tabs defaultValue="report">
         <TabsList>
-          <TabsTrigger value="report">统一报告</TabsTrigger>
-          <TabsTrigger value="members">原始上报（{c.count}）</TabsTrigger>
-          <TabsTrigger value="history">归并历史</TabsTrigger>
+          <TabsTrigger value="report">統一報告</TabsTrigger>
+          <TabsTrigger value="members">原始上報（{c.count}）</TabsTrigger>
+          <TabsTrigger value="history">歸併歷史</TabsTrigger>
         </TabsList>
         <TabsContent value="report">
           <Card>
             <CardHeader>
-              <CardTitle>完整复现与修复报告</CardTitle>
-              <CardDescription>集中查看所有成员的复现步骤、证据与修复建议。</CardDescription>
+              <CardTitle>完整重現與修復報告</CardTitle>
+              <CardDescription>集中檢視所有成員的重現步驟、證據與修復建議。</CardDescription>
             </CardHeader>
             <CardContent className="flex min-w-0 flex-col gap-4">
               {c.report_version !== c.version ? (
                 <Alert>
-                  <AlertDescription>成员或证据已变化，统一报告待更新。</AlertDescription>
+                  <AlertDescription>成員或證據已變化，統一報告待更新。</AlertDescription>
                 </Alert>
               ) : null}
               {!readOnly && c.active ? (
                 <Button variant="outline" onClick={regenerate} disabled={busy}>
-                  {busy ? <Spinner /> : null}重新生成统一报告
+                  {busy ? <Spinner /> : null}重新生成統一報告
                 </Button>
               ) : null}
               {c.report ? (
                 <Markdown text={c.report} />
               ) : (
-                <p className="text-muted-foreground text-sm">统一报告尚未生成，原始报告可在“原始上报”中查看。</p>
+                <p className="text-muted-foreground text-sm">統一報告尚未生成，原始報告可在“原始上報”中檢視。</p>
               )}
             </CardContent>
           </Card>
@@ -160,22 +160,22 @@ function CaseDetail() {
         <TabsContent value="members">
           <Card>
             <CardHeader>
-              <CardTitle>原始报告和证据完整保留</CardTitle>
-              <CardDescription>各条原始上报保留各自的等级、报告和证据。</CardDescription>
+              <CardTitle>原始報告和證據完整保留</CardTitle>
+              <CardDescription>各條原始上報保留各自的等級、報告和證據。</CardDescription>
             </CardHeader>
             <CardContent>
               {!readOnly && selected.size > 0 ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" disabled={busy}>
-                      移出所选（{selected.size}）
+                      移出所選（{selected.size}）
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>移出归并组？</AlertDialogTitle>
+                      <AlertDialogTitle>移出歸併組？</AlertDialogTitle>
                       <AlertDialogDescription>
-                        原报告和证据保留，Agent 不会自动把这些关系再次归并。
+                        原報告和證據保留，Agent 不會自動把這些關係再次歸併。
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -198,22 +198,22 @@ function CaseDetail() {
         <TabsContent value="history">
           <Card>
             <CardHeader>
-              <CardTitle>判断依据与操作记录</CardTitle>
+              <CardTitle>判斷依據與操作記錄</CardTitle>
               <CardDescription>{c.reason}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {data.events.map((e) => (
                 <div key={e.id} className="border-b pb-3 text-sm">
                   <p>
-                    {({ reporter: "报告 Agent", human: "人工", system: "系统" } as Record<string, string>)[e.actor] ??
+                    {({ reporter: "報告 Agent", human: "人工", system: "系統" } as Record<string, string>)[e.actor] ??
                       e.actor}{" "}
                     ·{" "}
                     {(
                       {
-                        merge: "归并",
-                        detach: "移出成员",
-                        member_deleted: "成员移出或删除",
-                        report_updated: "更新统一报告",
+                        merge: "歸併",
+                        detach: "移出成員",
+                        member_deleted: "成員移出或刪除",
+                        report_updated: "更新統一報告",
                       } as Record<string, string>
                     )[e.action] ?? e.action}{" "}
                     · {new Date(e.created_at).toLocaleString("zh-CN")}

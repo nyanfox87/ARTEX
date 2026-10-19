@@ -80,17 +80,17 @@ func (c *Compactor) OnPlannerRound(ctx context.Context, ts *db.ExplorationStore)
 		return
 	}
 	if !c.tryStart(ts.ID()) {
-		return // already running, or within cooldown —派生态最终一致，下轮再压
+		return // already running, or within cooldown —派生態最終一致，下輪再壓
 	}
 	go func() {
 		defer c.finish(ts.ID())
 		bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), c.maxDur)
 		defer cancel()
-		// 压缩是裸 provider 调用（compress 里直接 prov.Complete），不经过 agentcore
-		// 的会话循环，所以 ctx 上没有 session id；按 session-id 头做提示缓存/粘性
-		// 路由的网关（opencode zen 缺 x-opencode-session 直接 400）就收不到该头。
-		// 这里补一个按探索稳定的 id：同一探索的所有压缩请求共享它，既能带上头，
-		// 也让 llmrec 能把这次调用的 token 归因回该探索（此前记不到）。
+		// 壓縮是裸 provider 呼叫（compress 裡直接 prov.Complete），不經過 agentcore
+		// 的會話迴圈，所以 ctx 上沒有 session id；按 session-id 頭做提示快取/粘性
+		// 路由的閘道器（opencode zen 缺 x-opencode-session 直接 400）就收不到該頭。
+		// 這裡補一個按探索穩定的 id：同一探索的所有壓縮請求共享它，既能帶上頭，
+		// 也讓 llmrec 能把這次呼叫的 token 歸因回該探索（此前記不到）。
 		bg = transcript.WithSessionID(bg, fmt.Sprintf("exp%d-compactor", ts.ID()))
 		if needMajor {
 			c.major(bg, ts)
@@ -188,7 +188,7 @@ func (c *Compactor) minor(ctx context.Context, ts *db.ExplorationStore) {
 }
 
 // major re-derives the whole grouping from source over ALL eligible-cold nodes
-// (§5.1 回源重压), then reconciles against the active digests by signature:
+// (§5.1 回源重壓), then reconciles against the active digests by signature:
 // unchanged blocks keep their digest (no LLM), stale digests are superseded, and
 // new/changed blocks are compressed afresh. This is where tiered fragments of one
 // direction merge and where "later became connected" blocks unify (§5.2).
@@ -462,7 +462,7 @@ func buildCompressionInput(g *coldGraph, b block, nodeByID map[int64]*db.Node) s
 		memberSet[m] = true
 	}
 	var sb strings.Builder
-	sb.WriteString("【成员节点（要压缩的）】：\n")
+	sb.WriteString("【成員節點（要壓縮的）】：\n")
 	for _, m := range b.Members {
 		n := nodeByID[m]
 		kind := "fact"
@@ -485,18 +485,18 @@ func buildCompressionInput(g *coldGraph, b block, nodeByID map[int64]*db.Node) s
 	for _, m := range b.Members {
 		for _, to := range g.children[m] {
 			if memberSet[to] {
-				edgeLines = append(edgeLines, fmt.Sprintf("- #%d 产出/派生→ #%d", m, to))
+				edgeLines = append(edgeLines, fmt.Sprintf("- #%d 產出/派生→ #%d", m, to))
 			}
 		}
 	}
 	if len(edgeLines) > 0 {
-		sb.WriteString("\n【成员之间的血缘边（父→子）】：\n")
+		sb.WriteString("\n【成員之間的血緣邊（父→子）】：\n")
 		sort.Strings(edgeLines)
 		sb.WriteString(strings.Join(edgeLines, "\n"))
 		sb.WriteByte('\n')
 	}
 	if len(b.Anchors) > 0 {
-		sb.WriteString("\n【共同父 / 上下文锚（不是成员，只用于理解这些结果从哪个意图探出）】：\n")
+		sb.WriteString("\n【共同父 / 上下文錨（不是成員，只用於理解這些結果從哪個意圖探出）】：\n")
 		for _, a := range b.Anchors {
 			n := nodeByID[a]
 			state := ""
@@ -530,19 +530,19 @@ func (c *Compactor) compress(ctx context.Context, g *coldGraph, b block, nodeByI
 }
 
 // compressionSystemPrompt is the §4 body prompt.
-const compressionSystemPrompt = `你在压缩一组【彼此关联】的探索节点，产出一段综合结论(body)，供规划者快速掌握"这一片已经探明了什么"。
+const compressionSystemPrompt = `你在壓縮一組【彼此關聯】的探索節點，產出一段綜合結論(body)，供規劃者快速掌握"這一片已經探明瞭什麼"。
 
-输入是一个连通子图：
-- 节点：每条是一个意图或事实的 summary（一句话），带 id、类型(intent/fact)、state、confidence(若有)。
-- 关系：节点之间的血缘边（A 派生自 B / A 产出 B），说明它们如何串联。
-- 若节点间没有直接血缘边、但同属一个上游意图（会另给出该上游意图作为"共同父 #p"），则按"这个意图（#p）探到了什么"来综合它们——共同父只是上下文锚、不是要压缩的成员。
+輸入是一個連通子圖：
+- 節點：每條是一個意圖或事實的 summary（一句話），帶 id、型別(intent/fact)、state、confidence(若有)。
+- 關係：節點之間的血緣邊（A 派生自 B / A 產出 B），說明它們如何串聯。
+- 若節點間沒有直接血緣邊、但同屬一個上游意圖（會另給出該上游意圖作為"共同父 #p"），則按"這個意圖（#p）探到了什麼"來綜合它們——共同父只是上下文錨、不是要壓縮的成員。
 
-据此写一段 body：
-1. 综合、不罗列：顺着关系把因果串起来（哪个事实催生哪个意图、哪条意图产出了哪个结论），讲成"这一片探索得出了什么"，不要把每条 summary 抄一遍。
-2. 保留区分度：彼此不同的结论分别说清，别揉成一句笼统的话。
-3. 保留证据强度：带 confidence 的结论标出 observed / inferred；inferred 的否定/存疑结论要点明它只是推断、可复核，别写成定论。
-4. 带上 id：每条结论后标注来源节点 id（如"…（#12,#28）"），让规划者能按 id 还原原节点。
-5. 正向陈述、只写输入里有的：不脑补、不引入输入中没有的判断。
-6. 长度随内容自适应：结论少就短，多且互不相同就写够——但整体显著短于所有输入 summary 的总和。
+據此寫一段 body：
+1. 綜合、不羅列：順著關係把因果串起來（哪個事實催生哪個意圖、哪條意圖產出了哪個結論），講成"這一片探索得出了什麼"，不要把每條 summary 抄一遍。
+2. 保留區分度：彼此不同的結論分別說清，別揉成一句籠統的話。
+3. 保留證據強度：帶 confidence 的結論標出 observed / inferred；inferred 的否定/存疑結論要點明它只是推斷、可複核，別寫成定論。
+4. 帶上 id：每條結論後標註來源節點 id（如"…（#12,#28）"），讓規劃者能按 id 還原原節點。
+5. 正向陳述、只寫輸入裡有的：不腦補、不引入輸入中沒有的判斷。
+6. 長度隨內容自適應：結論少就短，多且互不相同就寫夠——但整體顯著短於所有輸入 summary 的總和。
 
-只输出 body 正文本身。`
+只輸出 body 正文本身。`

@@ -36,9 +36,9 @@ export function FindingSeverityCounts({
   return (
     <span
       className="inline-flex items-center gap-0.5 text-sm tabular-nums"
-      title="原始上报记录：严重 / 高 / 中 / 低"
+      title="原始上報記錄：嚴重 / 高 / 中 / 低"
       role="img"
-      aria-label={`严重${counts.critical}，高危${counts.high}，中危${counts.medium}，低危${counts.low}`}
+      aria-label={`嚴重${counts.critical}，高危${counts.high}，中危${counts.medium}，低危${counts.low}`}
     >
       <span className={counts.critical ? "text-severity-critical" : "text-muted-foreground"}>{counts.critical}</span>
       <span>/</span>
@@ -78,7 +78,7 @@ export function FindingCaseMemberRow({
       )}
     >
       {onSelect && !f.inherited ? (
-        <Checkbox checked={selected} onCheckedChange={(v) => onSelect(id, v === true)} aria-label={`选择上报 #${id}`} />
+        <Checkbox checked={selected} onCheckedChange={(v) => onSelect(id, v === true)} aria-label={`選擇上報 #${id}`} />
       ) : null}
       <StatusBadge domain="severity" value={f.severity} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -86,16 +86,16 @@ export function FindingCaseMemberRow({
           className="truncate font-medium hover:underline"
           href={`/function/findings/detail?id=${id}${contextTask ? `&context_task=${contextTask}` : ""}`}
         >
-          #{id} {[f.name, f.vulnclass].find((v) => v?.trim()) ?? "未分类"}
+          #{id} {[f.name, f.vulnclass].find((v) => v?.trim()) ?? "未分類"}
         </Link>
         <span className="truncate text-muted-foreground text-xs">{f.summary}</span>
       </div>
-      {!matched ? <Badge variant="outline">未命中当前筛选</Badge> : null}
-      {f.inherited ? <Badge variant="outline">继承 · 只读</Badge> : null}
+      {!matched ? <Badge variant="outline">未命中當前篩選</Badge> : null}
+      {f.inherited ? <Badge variant="outline">繼承 · 只讀</Badge> : null}
       <StatusBadge domain="finding" value={f.status} />
       <Button asChild variant="ghost" size="sm">
         <Link href={`/function/findings/detail?id=${id}${contextTask ? `&context_task=${contextTask}` : ""}`}>
-          查看报告
+          檢視報告
         </Link>
       </Button>
     </div>
@@ -145,9 +145,9 @@ export function FindingCaseMembers({
     return (
       <Alert>
         <AlertDescription>
-          成员加载失败：{error}
+          成員載入失敗：{error}
           <Button variant="link" onClick={() => setRetry((v) => v + 1)}>
-            重试
+            重試
           </Button>
         </AlertDescription>
       </Alert>
@@ -209,16 +209,16 @@ function FindingMergeSuggestionCard({
     <Card size="sm" className="min-w-0">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">疑似重复 · 待确认</Badge>
-          <CardDescription>任务 #{s.task_id}</CardDescription>
+          <Badge variant="outline">疑似重複 · 待確認</Badge>
+          <CardDescription>任務 #{s.task_id}</CardDescription>
         </div>
         <CardTitle className="break-words">{s.title}</CardTitle>
         <CardDescription className="flex flex-wrap gap-3">
           <Link className="underline underline-offset-4" href={`/function/findings/detail/?id=${s.left_id}`}>
-            查看原报告 #{s.left_id}
+            檢視原報告 #{s.left_id}
           </Link>
           <Link className="underline underline-offset-4" href={`/function/findings/detail/?id=${s.right_id}`}>
-            查看原报告 #{s.right_id}
+            檢視原報告 #{s.right_id}
           </Link>
         </CardDescription>
       </CardHeader>
@@ -232,14 +232,14 @@ function FindingMergeSuggestionCard({
           </CollapsibleContent>
           <CollapsibleTrigger asChild>
             <Button variant="link" size="sm">
-              {expanded ? "收起判断依据" : "展开判断依据"}
+              {expanded ? "收起判斷依據" : "展開判斷依據"}
             </Button>
           </CollapsibleTrigger>
         </Collapsible>
       </CardContent>
       <CardFooter className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" disabled={busy} onClick={() => resolve(true)}>
-          {busy ? <Spinner /> : null}确认归并
+          {busy ? <Spinner /> : null}確認歸併
         </Button>
         <Button variant="ghost" size="sm" disabled={busy} onClick={() => resolve(false)}>
           不是同一漏洞
@@ -254,13 +254,13 @@ function FindingReviewRunRow({ run: r }: { run: FindingCaseReviewRun }) {
     <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
       {r.state === "running" ? <Spinner /> : null}
       <span>
-        任务 #{r.task_id} · 整理 #{r.conversation_id}
+        任務 #{r.task_id} · 整理 #{r.conversation_id}
       </span>
       <Badge variant={r.state === "failed" ? "destructive" : "secondary"}>
-        {{ queued: "排队中", running: "运行中", done: "已完成", failed: "失败" }[r.state]}
+        {{ queued: "排隊中", running: "執行中", done: "已完成", failed: "失敗" }[r.state]}
       </Badge>
       <Link className="underline underline-offset-4" href={`/chat?c=${r.conversation_id}`}>
-        查看执行记录
+        檢視執行記錄
       </Link>
       {r.error ? <p className="w-full break-words text-destructive">{r.error}</p> : null}
     </div>
@@ -299,9 +299,9 @@ export function FindingCaseReviewPanel({ taskId, onChange }: { taskId?: string; 
       const result = await api.resolveFindingCaseSuggestion(s.id, accept);
       setSuggestions((v) => v.filter((x) => x.id !== s.id));
       if (accept && result.case_id !== "0") {
-        toast.success("已归并，请进入文件夹生成统一报告");
+        toast.success("已歸併，請進入資料夾生成統一報告");
       } else {
-        toast.success("已否决，不会自动再次归并");
+        toast.success("已否決，不會自動再次歸併");
       }
       onChange?.();
     } catch (e) {
@@ -312,11 +312,11 @@ export function FindingCaseReviewPanel({ taskId, onChange }: { taskId?: string; 
     <div className="flex flex-col gap-2">
       {error ? (
         <Alert>
-          <AlertDescription>整理状态加载失败：{error}</AlertDescription>
+          <AlertDescription>整理狀態載入失敗：{error}</AlertDescription>
         </Alert>
       ) : null}
       {suggestions.length > 0 ? (
-        <p className="text-muted-foreground text-sm">待确认归并建议（{suggestions.length}）· 确认前原始记录分别保留</p>
+        <p className="text-muted-foreground text-sm">待確認歸併建議（{suggestions.length}）· 確認前原始記錄分別保留</p>
       ) : null}
       {suggestions.map((s) => (
         <FindingMergeSuggestionCard key={s.id} suggestion={s} onResolve={resolve} />
@@ -395,9 +395,9 @@ export function FindingCaseList({
       {error ? (
         <Alert>
           <AlertDescription>
-            加载失败：{error}
+            載入失敗：{error}
             <Button variant="link" onClick={() => setRefresh((v) => v + 1)}>
-              重试
+              重試
             </Button>
           </AlertDescription>
         </Alert>
@@ -409,7 +409,7 @@ export function FindingCaseList({
       ) : null}
       {data ? (
         <p className="text-muted-foreground text-xs">
-          {data.stats.total} 个独立漏洞 · {data.stats.reports} 条上报
+          {data.stats.total} 個獨立漏洞 · {data.stats.reports} 條上報
         </p>
       ) : null}
       {data?.items.map((row) => {
@@ -440,7 +440,7 @@ export function FindingCaseList({
           );
         return null;
       })}
-      {data?.total === 0 ? <p className="p-6 text-center text-muted-foreground text-sm">暂无匹配漏洞</p> : null}
+      {data?.total === 0 ? <p className="p-6 text-center text-muted-foreground text-sm">暫無匹配漏洞</p> : null}
       {data ? (
         <TablePagination
           page={page}
@@ -487,7 +487,7 @@ export function FindingCaseFolder({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`${open ? "收起" : "展开"}${group.title}`}
+            aria-label={`${open ? "收起" : "展開"}${group.title}`}
             aria-expanded={open}
             aria-controls={`finding-case-members-${group.id}`}
             onClick={() => setOpen((v) => !v)}
@@ -509,8 +509,8 @@ export function FindingCaseFolder({
               </Link>
             </CardTitle>
             <CardDescription>
-              漏洞文件夹 · {group.count} 条原始上报 ·{" "}
-              {group.report_version !== group.version ? "统一报告待更新" : "统一报告已生成"}
+              漏洞資料夾 · {group.count} 條原始上報 ·{" "}
+              {group.report_version !== group.version ? "統一報告待更新" : "統一報告已生成"}
             </CardDescription>
             {presentation !== "compact" ? (
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
@@ -520,13 +520,13 @@ export function FindingCaseFolder({
                     href={`/function/tasks/detail?id=${group.task_id}`}
                     title={row.task_description}
                   >
-                    所属任务 #{group.task_id}
+                    所屬任務 #{group.task_id}
                     {taskLabel ? ` · ${taskLabel}` : ""}
                   </Link>
                 ) : null}
                 {(row.assets ?? []).length ? (
                   <span className="inline-flex min-w-0 flex-wrap items-center gap-1">
-                    资产：
+                    資產：
                     {row.assets?.map((a) => (
                       <code
                         key={a.id}
@@ -539,11 +539,11 @@ export function FindingCaseFolder({
                     {(row.asset_count ?? 0) > 4 ? <span>+{(row.asset_count ?? 0) - 4}</span> : null}
                   </span>
                 ) : (
-                  <span>未关联资产</span>
+                  <span>未關聯資產</span>
                 )}
                 {row.last_found_at ? (
                   <time dateTime={row.last_found_at}>
-                    最近上报{" "}
+                    最近上報{" "}
                     {new Date(row.last_found_at).toLocaleString("zh-CN", {
                       month: "2-digit",
                       day: "2-digit",
@@ -556,7 +556,7 @@ export function FindingCaseFolder({
             ) : null}
           </div>
           <div className="flex shrink-0 flex-col gap-1">
-            <span className="text-muted-foreground text-xs">严 / 高 / 中 / 低</span>
+            <span className="text-muted-foreground text-xs">嚴 / 高 / 中 / 低</span>
             <FindingSeverityCounts counts={group} />
           </div>
         </div>
@@ -565,7 +565,7 @@ export function FindingCaseFolder({
         <CardContent
           id={`finding-case-members-${group.id}`}
           role="region"
-          aria-label={`${group.title}的原始子报告`}
+          aria-label={`${group.title}的原始子報告`}
           className="border-t bg-muted/20 px-4 py-4 sm:px-6"
         >
           <FindingCaseMembers

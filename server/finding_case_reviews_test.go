@@ -9,30 +9,30 @@ import (
 	"testing"
 )
 
-const completeFindingReviewReport = `# 同一权限缺陷
+const completeFindingReviewReport = `# 同一權限缺陷
 ## 概述
-同一对象权限检查缺失。
-## 影响
-已验证读取其他账号的订单。
-## 前置条件
-已存在的低权会话和订单编号。
-## 复现步骤
-对照自己的订单，再查看其他账号订单，响应证明同一检查缺失。
-## 证据
-原报告的保存响应及命令输出，未重新探测。
+同一物件權限檢查缺失。
+## 影響
+已驗證讀取其他帳號的訂單。
+## 前置條件
+已存在的低權會話和訂單編號。
+## 重現步驟
+對照自己的訂單，再檢視其他帳號訂單，回應證明同一檢查缺失。
+## 證據
+原報告的儲存回應及命令輸出，未重新探測。
 ## PoC
-完整命令在原始证据中，此测试使用隔离材料。
+完整命令在原始證據中，此測試使用隔離材料。
 ## 根因分析
-同一订单 handler 未验证订单所有者。
-## 修复建议
-统一验证请求者与订单所有者，并回归对象权限检查。
+同一訂單 handler 未驗證訂單所有者。
+## 修復建議
+統一驗證請求者與訂單所有者，並回歸物件權限檢查。
 `
 
 func TestUnifiedFindingReportRejectsIncompleteAndTruncated(t *testing.T) {
 	if err := validateUnifiedFindingReport(completeFindingReviewReport); err != nil {
 		t.Fatal(err)
 	}
-	for _, s := range []string{strings.Split(completeFindingReviewReport, "## 根因分析")[0], completeFindingReviewReport + "\n```bash\nunclosed", strings.Replace(completeFindingReviewReport, "统一验证请求者与订单所有者，并回归对象权限检查。", "", 1)} {
+	for _, s := range []string{strings.Split(completeFindingReviewReport, "## 根因分析")[0], completeFindingReviewReport + "\n```bash\nunclosed", strings.Replace(completeFindingReviewReport, "統一驗證請求者與訂單所有者，並回歸物件權限檢查。", "", 1)} {
 		if err := validateUnifiedFindingReport(s); err == nil {
 			t.Fatal("incomplete report accepted")
 		}
@@ -55,9 +55,9 @@ func TestFindingCaseReviewCompletionRequiresReadsAndFreshReport(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx := intercept.WithConvID(context.Background(), conv)
-	a := findingReviewConclusion{Summary: "根据对象权限检查的具体证据判断"}
+	a := findingReviewConclusion{Summary: "根據物件權限檢查的具體證據判斷"}
 	for _, id := range ids {
-		a.Decisions = append(a.Decisions, findingReviewDecision{FindingID: id, Verdict: "merged", Reason: "同一 handler", RootCauseEvidence: "各记录的 baseline/proof 指向同一对象所有者校验缺失"})
+		a.Decisions = append(a.Decisions, findingReviewDecision{FindingID: id, Verdict: "merged", Reason: "同一 handler", RootCauseEvidence: "各記錄的 baseline/proof 指向同一物件所有者校驗缺失"})
 	}
 	if err := s.saveFindingReviewConclusion(ctx, conv, a); err == nil {
 		t.Fatal("unread findings accepted")
@@ -130,10 +130,10 @@ func TestFindingCaseReviewSuggestionNeedsSavedSuggestion(t *testing.T) {
 	defer s.m.pg.Exec(`DELETE FROM conversations WHERE id=$1`, conv)
 	s.m.pg.Exec(`UPDATE finding_case_review_runs SET state='running' WHERE conversation_id=$1`, conv)
 	ctx := intercept.WithConvID(context.Background(), conv)
-	a := findingReviewConclusion{Summary: "需人工确认共同组件"}
+	a := findingReviewConclusion{Summary: "需人工確認共同元件"}
 	for _, id := range ids[:2] {
 		s.performFindingCaseTool(ctx, "get_finding_record", findingCaseRequest{FindingID: json.RawMessage(fmt.Sprint(id))})
-		a.Decisions = append(a.Decisions, findingReviewDecision{FindingID: id, Verdict: "suggested", Reason: "同一边界但根因未确认", RootCauseEvidence: "原报告指向对象权限边界，缺少共同组件证据"})
+		a.Decisions = append(a.Decisions, findingReviewDecision{FindingID: id, Verdict: "suggested", Reason: "同一邊界但根因未確認", RootCauseEvidence: "原報告指向物件權限邊界，缺少共同元件證據"})
 	}
 	if err := s.saveFindingReviewConclusion(ctx, conv, a); err == nil {
 		t.Fatal("unpersisted suggestion accepted")

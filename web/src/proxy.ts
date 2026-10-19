@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const AUTH_PAGES = ["/login", "/setup"];
 
 export async function proxy(request: NextRequest) {
-  // Mock demo：无真实登录，放行所有页面（客户端 auth 守卫也会放行）。
+  // Mock demo：無真實登入，放行所有頁面（客戶端 auth 守衛也會放行）。
   if (process.env.NEXT_PUBLIC_MOCK === "1") return NextResponse.next();
 
   // Pages served by Next dev must pass the same gate as the embedded UI.
@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
   try {
     const backend = new URL(process.env.AUTOPENTEST_API ?? "http://localhost:8787");
     if (!["http:", "https:"].includes(backend.protocol) || backend.username || backend.password) {
-      return new NextResponse("认证后端地址配置无效", { status: 503 });
+      return new NextResponse("認證後端地址配置無效", { status: 503 });
     }
     const local = ["localhost", "127.0.0.1", "[::1]"].includes(backend.hostname);
     gate = await fetch(new URL("/api/basic-auth/check", backend), {
@@ -31,16 +31,16 @@ export async function proxy(request: NextRequest) {
       signal: AbortSignal.timeout(5000),
     });
     if (!local && gate.status === 401) {
-      return new NextResponse("远程后端已启用 HTTP Basic Auth，请通过内嵌前端访问该服务", { status: 503 });
+      return new NextResponse("遠端後端已啟用 HTTP Basic Auth，請通過內嵌前端訪問該服務", { status: 503 });
     }
   } catch {
-    return new NextResponse("认证服务暂时不可用，请稍后重试", { status: 503 });
+    return new NextResponse("認證服務暫時不可用，請稍後重試", { status: 503 });
   }
   if (!gate.ok) {
     const headers = new Headers({ "Cache-Control": "no-store", "Content-Type": "text/plain; charset=utf-8" });
     const challenge = gate.headers.get("www-authenticate");
     if (challenge) headers.set("WWW-Authenticate", challenge);
-    return new NextResponse(gate.status === 401 ? "请完成 HTTP Basic Auth 验证后刷新页面" : "认证服务暂时不可用", {
+    return new NextResponse(gate.status === 401 ? "請完成 HTTP Basic Auth 驗證後重新整理頁面" : "認證服務暫時不可用", {
       status: gate.status,
       headers,
     });
@@ -56,12 +56,12 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get("artex_token")?.value;
   const isAuthPage = AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  // 未登录 → 跳转登录页
+  // 未登入 → 跳轉登入頁
   if (!token && !isAuthPage) {
     return finish(NextResponse.redirect(new URL("/login", request.url)));
   }
 
-  // 已登录时访问登录/初始化页 → 跳转主界面
+  // 已登入時訪問登入/初始化頁 → 跳轉主介面
   if (token && isAuthPage) {
     return finish(NextResponse.redirect(new URL("/function/tasks", request.url)));
   }
@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // 跳过 Next.js 内部路由、API 路由、favicon 及 public/ 下的静态文件（含图片、字体等）
+  // 跳過 Next.js 內部路由、API 路由、favicon 及 public/ 下的靜態檔案（含圖片、字型等）
   matcher: [
     "/((?!_next/static|_next/image|favicon\\.ico|api/|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf|otf)$).*)",
   ],

@@ -35,15 +35,15 @@ func constraintBlock(ts *db.ExplorationStore) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("\n\n【操作约束（最高优先级，凌驾于下方一切探索/拓面启发式；每生成一条意图、每执行一个动作前都必须先自检是否违反，违反即不得进行）】：")
+	b.WriteString("\n\n【操作約束（最高優先順序，凌駕於下方一切探索/拓面啟發式；每生成一條意圖、每執行一個動作前都必須先自檢是否違反，違反即不得進行）】：")
 	if len(allow) > 0 {
-		b.WriteString("\n允许的操作：\n")
+		b.WriteString("\n允許的操作：\n")
 		b.WriteString(strings.Join(allow, "\n"))
 	}
 	if len(deny) > 0 {
 		b.WriteString("\n禁止的操作：\n")
 		b.WriteString(strings.Join(deny, "\n"))
 	}
-	b.WriteString("\n（发现约束之外的新目标/新端口/新主机，不等于获得授权：除非它落在上述允许范围内，否则记为 out-of-scope 事实并跳过，不得为其派生意图或执行动作。）")
+	b.WriteString("\n（發現約束之外的新目標/新埠/新主機，不等於獲得授權：除非它落在上述允許範圍內，否則記為 out-of-scope 事實並跳過，不得為其派生意圖或執行動作。）")
 	return b.String()
 }

@@ -194,7 +194,7 @@ func generatedSedSnapshot(stmt *syntax.Stmt, args []*syntax.Word, dir, target st
 		}
 		raw, err := readScript(source)
 		if err != nil {
-			return "", "固定替换的原脚本无法读取：" + err.Error(), false
+			return "", "固定替換的原指令碼無法讀取：" + err.Error(), false
 		}
 		content = string(raw)
 	}
